@@ -4,6 +4,7 @@ export const validateRegistration = (data) => {
   const schema = joi.object({
     fullName: joi.string().min(3).max(60).required(),
     email: joi.string().email().required(),
+    role: joi.string().optional(),
     password: joi
       .string()
       .min(8)

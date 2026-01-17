@@ -7,40 +7,67 @@ export class CreateScholarshipDTO {
     this.country = data.country;
     this.deadline = data.deadline;
     this.funding_type = data.funding_type;
+    this.image = data.image; // 👈 add image
   }
 
-  // Validation schema
   static schema = Joi.object({
-    title: Joi.string().min(3).max(50).required().messages({
-      'string.empty': 'Title is required',
-      'string.min': 'Title must be at least 3 characters',
-      'string.max': 'Title cannot exceed 50 characters',
-    }),
-    description: Joi.string().min(50).max(600).required().messages({
-      'string.empty': 'Description is required',
-      'string.min': 'Description must be at least 50 characters',
-      'string.max': 'Description cannot exceed 600 characters',
-    }),
-    country: Joi.string()
-      .required()
-      .messages({ 'string.empty': 'Country is required' }),
-    deadline: Joi.date().greater('now').required().messages({
-      'date.base': 'Deadline must be a valid date',
-      'date.greater': 'Deadline must be a future date',
-    }),
+    title: Joi.string().min(3).max(50).required(),
+    description: Joi.string().min(50).max(600).required(),
+    country: Joi.string().required(),
+    deadline: Joi.date().greater('now').required(),
     funding_type: Joi.string().optional(),
+
+    // ✅ OPTIONAL image
+    image: Joi.any().optional(),
   });
 
-  // Validate method
   validate() {
     const { error, value } = CreateScholarshipDTO.schema.validate(this, {
       abortEarly: false,
+      stripUnknown: true,
     });
+
     if (error) {
-      // Combine all error messages
-      const messages = error.details.map((detail) => detail.message);
-      throw new Error(messages.join(', '));
+      throw new Error(error.details.map((d) => d.message).join(', '));
     }
+
+    return value;
+  }
+}
+
+export class UpdateScholarshipDTO {
+  constructor(data) {
+    this.title = data.title;
+    this.description = data.description;
+    this.country = data.country;
+    this.deadline = data.deadline;
+    this.funding_type = data.funding_type;
+    this.image = data.image; // 👈 add image
+  }
+
+  static schema = Joi.object({
+    title: Joi.string().min(3).max(50),
+    description: Joi.string().min(50).max(600),
+    country: Joi.string(),
+    deadline: Joi.date().greater('now'),
+    funding_type: Joi.string(),
+    image: Joi.any().optional(),
+  })
+    .min(1)
+    .messages({
+      'object.min': 'At least one field must be updated',
+    });
+
+  validate() {
+    const { error, value } = UpdateScholarshipDTO.schema.validate(this, {
+      abortEarly: false,
+      stripUnknown: true,
+    });
+
+    if (error) {
+      throw new Error(error.details.map((d) => d.message).join(', '));
+    }
+
     return value;
   }
 }

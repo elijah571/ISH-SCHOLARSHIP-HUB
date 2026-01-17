@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 
 import { setSecurityHeaders, csrfProtection } from './middleware/security.js';
 import authRoutes from './modules/auth/auth.routes.js';
+import scholarshipRoutes from './modules/scholarship/scholarship.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import csrfRoutes from './routes/csrf.routes.js';
 import { logger } from './utils/logger.js';
@@ -40,5 +41,6 @@ app.use((req, res, next) => {
 
 app.use('/api', csrfRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/scholarship', scholarshipRoutes);
 
 app.use(errorHandler);
