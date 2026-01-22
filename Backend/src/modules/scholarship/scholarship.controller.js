@@ -25,7 +25,7 @@ export const createScholarshipController = asyncHandler(async (req, res) => {
 
   const scholarship = await createScholarshipService({
     ...validatedData,
-    createdBy: req.user._id, // ✅ pass user ID here
+    createdBy: req.user._id,
   });
 
   res.status(201).json({

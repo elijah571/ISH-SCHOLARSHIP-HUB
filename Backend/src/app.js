@@ -5,10 +5,14 @@ import cookieParser from 'cookie-parser';
 
 import { setSecurityHeaders, csrfProtection } from './middleware/security.js';
 import authRoutes from './modules/auth/auth.routes.js';
-import scholarshipRoutes from './modules/scholarship/scholarship.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import csrfRoutes from './routes/csrf.routes.js';
 import { logger } from './utils/logger.js';
+
+//routes
+import scholarshipRoutes from './modules/scholarship/scholarship.routes.js';
+import blogRoutes from './modules/blog/blog.route.js';
+import newsletterRoutes from './modules/newsletter/newsletter.routes.js';
 
 export const app = express();
 
@@ -32,9 +36,9 @@ app.use((req, res, next) => {
 
 // ✅ Logger middleware
 app.use((req, res, next) => {
-  logger.info(`➡️ ${req.method} ${req.url}`);
+  logger.info(` ${req.method} ${req.url}`);
   if (req.body && Object.keys(req.body).length > 0) {
-    logger.info(`📦 Body: ${JSON.stringify(req.body)}`);
+    logger.info(`Body: ${JSON.stringify(req.body)}`);
   }
   next();
 });
@@ -42,5 +46,7 @@ app.use((req, res, next) => {
 app.use('/api', csrfRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/scholarship', scholarshipRoutes);
+app.use('/api/blog', blogRoutes);
+app.use('/api/newsletter', newsletterRoutes);
 
 app.use(errorHandler);
