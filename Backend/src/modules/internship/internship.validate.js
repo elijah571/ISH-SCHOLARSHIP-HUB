@@ -11,6 +11,7 @@ export class CreateInternshipDTO {
     this.startDate = data.startDate;
     this.endDate = data.endDate;
     this.image = data.image;
+    this.link = data.link;
   }
 
   static schema = Joi.object({
@@ -22,6 +23,7 @@ export class CreateInternshipDTO {
     institution: Joi.string().required(),
     startDate: Joi.date().greater('now').required(),
     endDate: Joi.date().greater('now').required(),
+    link: Joi.string().uri().required(),
 
     //  OPTIONAL image
     image: Joi.any().optional(),

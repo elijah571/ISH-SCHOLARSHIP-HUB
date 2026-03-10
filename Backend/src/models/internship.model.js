@@ -8,6 +8,7 @@ const internshipSchema = new mongoose.Schema(
     country: { type: String, required: true },
     deadline: { type: Date, required: true },
     type: { type: String, required: true },
+    link: { type: String, required: true },
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
 

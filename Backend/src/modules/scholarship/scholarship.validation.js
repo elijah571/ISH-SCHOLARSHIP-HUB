@@ -7,7 +7,8 @@ export class CreateScholarshipDTO {
     this.country = data.country;
     this.deadline = data.deadline;
     this.funding_type = data.funding_type;
-    this.image = data.image; // 👈 add image
+    this.image = data.image;
+    this.link = data.link;
   }
 
   static schema = Joi.object({
@@ -16,6 +17,7 @@ export class CreateScholarshipDTO {
     country: Joi.string().required(),
     deadline: Joi.date().greater('now').required(),
     funding_type: Joi.string().optional(),
+    link: joi.string().uri().required(),
 
     // ✅ OPTIONAL image
     image: Joi.any().optional(),

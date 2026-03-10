@@ -6,10 +6,7 @@ import {
   getInternshipsService,
   updateInternshipService,
 } from './internship.service.js';
-import {
-  CreateInternshipDTO,
-  UpdateInternshipDTO,
-} from './internship.validate.js';
+import { CreateInternshipDTO, UpdateInternshipDTO } from './internship.validate.js';
 
 export const createInternshipController = asyncHandler(async (req, res) => {
   // Prepare DTO input
@@ -23,7 +20,7 @@ export const createInternshipController = asyncHandler(async (req, res) => {
 
   // Call service
 
-  const scholarship = await createInternshipService({
+  const internship = await createInternshipService({
     ...validatedData,
     createdBy: req.user._id,
   });
@@ -61,10 +58,7 @@ export const updateInternshipController = asyncHandler(async (req, res) => {
 
   const validatedData = dto.validate();
 
-  const scholarship = await updateInternshipService(
-    req.params.id,
-    validatedData
-  );
+  const scholarship = await updateInternshipService(req.params.id, validatedData);
 
   res.status(200).json({ success: true, data: scholarship });
 });
