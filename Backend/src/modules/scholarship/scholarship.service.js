@@ -6,6 +6,8 @@ export const createScholarshipService = async ({
   title,
   description,
   country,
+  duration,
+  link,
   deadline,
   funding_type,
   image, // optional
@@ -25,6 +27,7 @@ export const createScholarshipService = async ({
     deadline,
     funding_type,
     link,
+    duration,
     image: uploadedImage
       ? {
           url: uploadedImage.secure_url,

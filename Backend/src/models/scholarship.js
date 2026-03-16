@@ -21,6 +21,9 @@ const scholarshipSchema = new mongoose.Schema(
     funding_type: {
       type: String,
     },
+    duration: {
+      type: String,
+    },
     link: { type: String, required: true },
 
     image: {
