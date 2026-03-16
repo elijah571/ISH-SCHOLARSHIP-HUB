@@ -7,8 +7,8 @@ export class CreateScholarshipDTO {
     this.country = data.country;
     this.deadline = data.deadline;
     this.funding_type = data.funding_type;
+    this.link = data.link; // ✅ add
     this.image = data.image;
-    this.link = data.link;
   }
 
   static schema = Joi.object({
@@ -17,24 +17,11 @@ export class CreateScholarshipDTO {
     country: Joi.string().required(),
     deadline: Joi.date().greater('now').required(),
     funding_type: Joi.string().optional(),
-    link: joi.string().uri().required(),
 
-    // ✅ OPTIONAL image
+    link: Joi.string().uri().required(), // ✅ required
+
     image: Joi.any().optional(),
   });
-
-  validate() {
-    const { error, value } = CreateScholarshipDTO.schema.validate(this, {
-      abortEarly: false,
-      stripUnknown: true,
-    });
-
-    if (error) {
-      throw new Error(error.details.map((d) => d.message).join(', '));
-    }
-
-    return value;
-  }
 }
 
 export class UpdateScholarshipDTO {
@@ -44,7 +31,8 @@ export class UpdateScholarshipDTO {
     this.country = data.country;
     this.deadline = data.deadline;
     this.funding_type = data.funding_type;
-    this.image = data.image; // 👈 add image
+    this.link = data.link; // ✅ add
+    this.image = data.image;
   }
 
   static schema = Joi.object({
@@ -53,23 +41,13 @@ export class UpdateScholarshipDTO {
     country: Joi.string(),
     deadline: Joi.date().greater('now'),
     funding_type: Joi.string(),
+
+    link: Joi.string().uri(), // ✅ optional update
+
     image: Joi.any().optional(),
   })
     .min(1)
     .messages({
       'object.min': 'At least one field must be updated',
     });
-
-  validate() {
-    const { error, value } = UpdateScholarshipDTO.schema.validate(this, {
-      abortEarly: false,
-      stripUnknown: true,
-    });
-
-    if (error) {
-      throw new Error(error.details.map((d) => d.message).join(', '));
-    }
-
-    return value;
-  }
 }
