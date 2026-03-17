@@ -10,7 +10,7 @@ export class CreateInternshipDTO {
     this.institution = data.institution;
     this.startDate = data.startDate;
     this.endDate = data.endDate;
-    this.link = data.link; // ✅ add link
+    this.link = data.link;
     this.image = data.image;
   }
 
@@ -23,11 +23,22 @@ export class CreateInternshipDTO {
     institution: Joi.string().required(),
     startDate: Joi.date().greater('now').required(),
     endDate: Joi.date().greater('now').required(),
-
-    link: Joi.string().uri().required(), // ✅ validate URL
-
+    link: Joi.string().uri().required(),
     image: Joi.any().optional(),
   });
+
+  validate() {
+    const { error, value } = CreateInternshipDTO.schema.validate(this, {
+      abortEarly: false,
+      stripUnknown: true,
+    });
+
+    if (error) {
+      throw new Error(error.details.map((err) => err.message).join(', '));
+    }
+
+    return value;
+  }
 }
 export class UpdateInternshipDTO {
   constructor(data) {
@@ -61,4 +72,16 @@ export class UpdateInternshipDTO {
     .messages({
       'object.min': 'At least one field must be updated',
     });
+  validate() {
+    const { error, value } = UpdateInternshipDTO.schema.validate(this, {
+      abortEarly: false,
+      stripUnknown: true,
+    });
+
+    if (error) {
+      throw new Error(error.details.map((err) => err.message).join(', '));
+    }
+
+    return value;
+  }
 }

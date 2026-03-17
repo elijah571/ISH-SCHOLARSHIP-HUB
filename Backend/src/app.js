@@ -13,6 +13,7 @@ import { logger } from './utils/logger.js';
 import scholarshipRoutes from './modules/scholarship/scholarship.routes.js';
 import blogRoutes from './modules/blog/blog.route.js';
 import newsletterRoutes from './modules/newsletter/newsletter.routes.js';
+import internshipRoutes from './modules/internship/internship.routes.js';
 
 export const app = express();
 
@@ -48,5 +49,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/scholarship', scholarshipRoutes);
 app.use('/api/blog', blogRoutes);
 app.use('/api/newsletter', newsletterRoutes);
+app.use('/api/internship', internshipRoutes);
 
 app.use(errorHandler);
