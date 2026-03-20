@@ -36,7 +36,7 @@ const Newsletter = () => {
               <Button 
                 type="submit"
                 variant="white"
-                rounded="full"
+                rounded="md"
                 className="px-8 h-12 whitespace-nowrap"
               >
                 Subscribe

@@ -8,17 +8,23 @@ import FeaturedScholarships from '../components/FeaturedScholarships';
 import HowItWorks from '../components/HowItWorks';
 import Newsletter from '../components/Newsletter';
 import Footer from '../components/Footer';
+import '../App.css';
 
 const HomePage = () => {
   return (
     <div className="min-h-screen bg-white">
-      <Navbar />
+      <Navbar 
+      buttonText="Get Started"
+      buttonLink="/register"
+      />
       <Hero />
       <SearchBar />
       <Stats />
       <FeaturedScholarships />
       <HowItWorks />
-      <Newsletter />
+      <section id='newsletter'>
+        <Newsletter />
+      </section>
       <Footer />
     </div>
   );
