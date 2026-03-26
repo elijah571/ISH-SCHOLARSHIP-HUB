@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import Modal from '../Modal';
 import Button from '../Button';
+import { getNames } from 'country-list';
 
 const EMPTY_FORM = {
   title: '',
@@ -12,6 +13,9 @@ const EMPTY_FORM = {
   link: '',
   imageUrl: '',
 };
+
+// get all countries
+const countries = getNames();
 
 const getInitialFormData = (scholarship) => {
   if (!scholarship) return EMPTY_FORM;
@@ -34,6 +38,7 @@ const ScholarshipModal = ({ isOpen, onClose, onSubmit, scholarship, loading }) =
   const [imagePreview, setImagePreview] = useState('');
   const [errors, setErrors] = useState({});
   const [useUrl, setUseUrl] = useState(true);
+
 
   const initForm = useCallback(() => {
     const initialData = getInitialFormData(scholarship);
@@ -79,6 +84,7 @@ const ScholarshipModal = ({ isOpen, onClose, onSubmit, scholarship, loading }) =
     if (!formData.country.trim()) newErrors.country = 'Country is required';
     if (!formData.deadline) newErrors.deadline = 'Deadline is required';
     if (!formData.funding_type) newErrors.funding_type = 'Funding type is required';
+    if (!formData.link.trim()) newErrors.link = 'Application link is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -151,16 +157,22 @@ const ScholarshipModal = ({ isOpen, onClose, onSubmit, scholarship, loading }) =
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Country <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
-              name="country"
-              value={formData.country}
-              onChange={handleChange}
-              placeholder="e.g., United States"
-              className={`w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
-                errors.country ? 'border-red-500' : 'border-gray-200'
-              }`}
-            />
+            <select 
+            name="country" 
+            id="country" 
+            value={formData.country} 
+            onChange={handleChange}
+            className={`w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
+              errors.country ? 'border-red-500' : 'border-gray-200'
+            }`}
+            >
+              <option value="">Select Country</option>
+              {countries.map((country) => (
+                <option key={country} value={country}>
+                  {country}
+                </option>
+              ))}
+            </select>
             {errors.country && <p className="mt-1 text-sm text-red-600">{errors.country}</p>}
           </div>
 

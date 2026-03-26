@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { toast } from "react-toastify";
 import { TableRow } from "../../pages/AdminDashboardPage";
 import { PlusIcon, SearchIcon, EditIcon, EyeIcon, TrashIcon } from "../icons/Icons";
 import Button from "../Button";
@@ -75,13 +76,16 @@ export const InternshipsTab = () => {
     try {
       if (id) {
         await api.patch(`/api/internship/${id}`, formData);
+        toast.success("Internship updated successfully");
       } else {
         await api.post('/api/internship/create', formData);
+        toast.success("Internship created successfully");
       }
       setShowFormModal(false);
       fetchInternships();
     } catch (err) {
       console.error('Failed to save internship:', err);
+      toast.error("Failed to save internship");
     } finally {
       setFormLoading(false);
     }
@@ -89,6 +93,7 @@ export const InternshipsTab = () => {
 
   const handleDeleteSuccess = () => {
     fetchInternships();
+    toast.success("Internship deleted successfully");
   };
 
   const filteredInternships = internships.filter(internship =>

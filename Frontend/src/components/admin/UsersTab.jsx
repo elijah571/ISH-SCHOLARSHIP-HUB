@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { toast } from "react-toastify";
 import { TableRow } from "../../pages/AdminDashboardPage";
 import Button from "../Button";
 import { PlusIcon, SearchIcon } from "../icons/Icons";
@@ -66,10 +67,12 @@ const UsersTab = () => {
 
   const handleFormSuccess = () => {
     fetchUsers();
+    toast.success("User saved successfully");
   };
 
   const handleDeleteSuccess = () => {
     fetchUsers();
+    toast.success("User deleted successfully");
   };
 
   const filteredUsers = users.filter(user =>

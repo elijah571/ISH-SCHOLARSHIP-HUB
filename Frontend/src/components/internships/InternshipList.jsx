@@ -1,81 +1,55 @@
 import React from 'react';
 import InternshipCard from './InternshipCard';
+import Loader from '../Loader';
 
-const InternshipList = () => {
-  const internships = [
-    {
-      id: 1,
-      title: 'Software Engineering Intern',
-      description: 'Join our engineering team to work on cutting-edge web applications. You will collaborate with senior developers on real projects.',
-      company: 'TechCorp Inc.',
-      location: 'San Francisco, CA',
-      type: 'paid',
-      duration: '12 weeks',
-      deadline: '2024-11-15',
-      image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=400&fit=crop'
-    },
-    {
-      id: 2,
-      title: 'Marketing & Communications Intern',
-      description: 'Help drive our brand presence through social media management, content creation, and market research initiatives.',
-      company: 'Global Media Group',
-      location: 'New York, NY',
-      type: 'paid',
-      duration: '6 months',
-      deadline: '2024-12-01',
-      image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=400&fit=crop'
-    },
-    {
-      id: 3,
-      title: 'Data Science Research Intern',
-      description: 'Work with our data science team on machine learning models, statistical analysis, and big data processing projects.',
-      company: 'AI Research Labs',
-      location: 'Remote',
-      type: 'stipend',
-      duration: '3 months',
-      deadline: '2024-10-30',
-      image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=400&fit=crop'
-    },
-    {
-      id: 4,
-      title: 'Environmental Science Fellowship',
-      description: 'Participate in field research, environmental impact assessments, and sustainability initiative planning.',
-      company: 'Green Earth Foundation',
-      location: 'Seattle, WA',
-      type: 'stipend',
-      duration: '8 weeks',
-      deadline: '2024-11-20',
-      image: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?w=400&h=400&fit=crop'
-    },
-    {
-      id: 5,
-      title: 'UX Design Intern',
-      description: 'Assist in user research, wireframing, prototyping, and usability testing for our mobile and web products.',
-      company: 'DesignHub Studio',
-      location: 'Austin, TX',
-      type: 'paid',
-      duration: '4 months',
-      deadline: '2024-12-15',
-      image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=400&fit=crop'
-    },
-    {
-      id: 6,
-      title: 'Finance & Investment Analyst',
-      description: 'Gain hands-on experience in financial modeling, market analysis, and investment portfolio management.',
-      company: 'Sterling Financial',
-      location: 'Chicago, IL',
-      type: 'paid',
-      duration: '10 weeks',
-      deadline: '2024-11-10',
-      image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=400&fit=crop'
-    }
-  ];
+const InternshipList = ({ internships, loading, error, onRetry }) => {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader size="lg" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+        <svg className="w-12 h-12 mx-auto text-red-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <h3 className="text-lg font-semibold text-red-800 mb-2">Failed to Load Internships</h3>
+        <p className="text-red-600 mb-4">{error}</p>
+        {onRetry && (
+          <button
+            onClick={onRetry}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Try Again
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  if (!internships || internships.length === 0) {
+    return (
+      <div className="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center">
+        <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+        <h3 className="text-lg font-semibold text-gray-700 mb-2">No Internships Found</h3>
+        <p className="text-gray-500">
+          Try adjusting your filters or search terms to find more opportunities.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
       {internships.map((internship) => (
         <InternshipCard
-          key={internship.id}
+          key={internship._id || internship.id}
           internship={internship}
         />
       ))}

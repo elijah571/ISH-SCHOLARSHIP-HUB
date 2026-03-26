@@ -1,4 +1,6 @@
 import { Routes, Route } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import HomePage from "./pages/HomePage";
 import ScholarshipListingPage from "./pages/ScholarshipListingPage";
 import ScholarshipDetailsPage from "./pages/ScholarshipDetailsPage";
@@ -17,6 +19,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 
 export default function App() {
   return (
+    <>
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/scholarships" element={<ScholarshipListingPage />} />
@@ -47,5 +50,18 @@ export default function App() {
         }
       />
     </Routes>
+    <ToastContainer
+      position="top-right"
+      autoClose={5000}
+      hideProgressBar={false}
+      newestOnTop={false}
+      closeOnClick
+      rtl={false}
+      pauseOnFocusLoss
+      draggable
+      pauseOnHover
+      theme="light"
+    />
+    </>
   );
 }

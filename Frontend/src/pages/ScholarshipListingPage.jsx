@@ -59,7 +59,10 @@ const ScholarshipListingPage = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navbar />
+      <Navbar 
+      buttonText="Apply"
+      buttonLink="/login"
+      />
 
       <Section background="gray" padding="py-8">
         <Container>

@@ -11,8 +11,6 @@ export const createScholarshipService = async ({
   link,
   deadline,
   funding_type,
-  link,
-  duration,
   image,
   createdBy,
 }) => {

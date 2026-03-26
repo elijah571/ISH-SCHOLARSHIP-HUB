@@ -69,7 +69,10 @@ const ScholarshipDetailsPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        <Navbar 
+        buttonText="Apply"
+        buttonLink="/login"
+        />
         <div className="flex items-center justify-center min-h-[60vh]">
           <Loader size="lg" />
         </div>
@@ -81,7 +84,10 @@ const ScholarshipDetailsPage = () => {
   if (error || !currentScholarship) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
+        <Navbar 
+        buttonText="Apply"
+        buttonLink="/login"
+        />
         <Section padding="py-20">
           <Container>
             <div className="text-center">
@@ -108,7 +114,10 @@ const ScholarshipDetailsPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <Navbar 
+      buttonText="Apply"
+      buttonLink="/login"
+      />
 
       <div className="relative h-72 md:h-80">
         <div

@@ -4,12 +4,15 @@ import './index.css'
 import App from "./App";
 import { AuthProvider } from "./context/AuthContext";
 import { ScholarshipProvider } from "./context/ScholarshipContext";
+import { InternshipProvider } from "./context/InternshipContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <AuthProvider>
       <ScholarshipProvider>
-        <App />
+        <InternshipProvider>
+          <App />
+        </InternshipProvider>
       </ScholarshipProvider>
     </AuthProvider>
   </BrowserRouter>
