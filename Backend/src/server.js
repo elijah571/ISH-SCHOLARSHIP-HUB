@@ -4,6 +4,7 @@ import { Server } from 'socket.io';
 import { app } from './app.js';
 import { connectDB } from './config/dataBase.js';
 import { logger } from './utils/logger.js';
+import { initializeChatSocket } from './services/chat.socket.js';
 
 dotenv.config();
 
@@ -17,6 +18,9 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: '*' },
 });
+
+// Initialize chat socket handlers
+initializeChatSocket(io);
 
 const startServer = async () => {
   try {

@@ -17,7 +17,7 @@ const MESSAGES = {
 export const subscribeNewsletterService = async (email) => {
   const user = await User.findOne({ email });
   if (!user) {
-    throw new AppError(USER_NOT_FOUND, 404);
+    throw new AppError(MESSAGES.USER_NOT_FOUND, 404);
   }
   const existing = await Newsletter.findOne({ user });
 
@@ -50,9 +50,7 @@ export const unsubscribeNewsletterService = async (email) => {
 };
 
 export const sendNewsletterService = async ({ subject, content }) => {
-  const subscribers = await Newsletter.find({ isActive: true })
-    .select('email')
-    .lean();
+  const subscribers = await Newsletter.find({ isActive: true }).select('email').lean();
 
   if (!subscribers.length) {
     throw new AppError(MESSAGES.NO_SUBSCRIBERS, 400);

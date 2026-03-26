@@ -2,7 +2,7 @@ import express from 'express';
 import { upload } from '../../middleware/upload.js';
 
 import { VerifyUser } from '../../middleware/auth.middleware.js';
-import { isAthourize } from '../../middleware/role.middleware.js';
+import { isAuthorized } from '../../middleware/role.middleware.js';
 import {
   createBlogController,
   getBlogByIdController,
@@ -18,7 +18,7 @@ router.post(
   '/create',
   upload.single('image'),
   VerifyUser,
-  isAthourize('admin'),
+  isAuthorized('admin'),
   createBlogController
 );
 

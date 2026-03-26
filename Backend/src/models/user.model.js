@@ -64,8 +64,8 @@ const userSchema = new mongoose.Schema(
     appliedScholarships: [
       {
         scholarship: { type: mongoose.Schema.Types.ObjectId, ref: 'Scholarship' },
-        appliedAt: { type: Date, default: Date.now }
-      }
+        appliedAt: { type: Date, default: Date.now },
+      },
     ],
 
     createdAt: {
@@ -90,7 +90,8 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   try {
     return await argon2.verify(this.password, candidatePassword);
   } catch (error) {
-    console.error(error);
+    console.error('Password comparison failed:', error);
+    throw new Error('Password verification failed');
   }
 };
 

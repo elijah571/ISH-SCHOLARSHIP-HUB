@@ -5,7 +5,7 @@ import {
   sendNewsletter,
 } from './newsletter.controller.js';
 import { VerifyUser } from '../../middleware/auth.middleware.js';
-import { isAthourize } from '../../middleware/role.middleware.js';
+import { isAuthorized } from '../../middleware/role.middleware.js';
 
 const router = express.Router();
 
@@ -14,6 +14,6 @@ router.post('/subscribe', VerifyUser, subscribeNewsletter);
 router.post('/unsubscribe', VerifyUser, unsubscribeNewsletter);
 
 // Admin - only admins can send newsletters
-router.post('/send', VerifyUser, isAthourize('admin'), sendNewsletter);
+router.post('/send', VerifyUser, isAuthorized('admin'), sendNewsletter);
 
 export default router;

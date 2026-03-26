@@ -7,9 +7,9 @@ import {
   deleteInternshipController,
   getInternshipsController,
   updateInternshipController,
-  getInternshipByIdController, // ✅ ADD THIS
+  getInternshipByIdController,
 } from './internship.controller.js';
-import { isAthourize } from '../../middleware/role.middleware.js';
+import { isAuthorized } from '../../middleware/role.middleware.js';
 
 const router = express.Router();
 
@@ -18,7 +18,7 @@ router.post(
   '/create',
   upload.single('image'),
   VerifyUser,
-  isAthourize('admin'),
+  isAuthorized('admin'),
   createInternshipController
 );
 
@@ -29,10 +29,10 @@ router.patch(
   '/:id',
   upload.single('image'),
   VerifyUser,
-  isAthourize('admin'),
+  isAuthorized('admin'),
   updateInternshipController
 );
 
-router.delete('/:id', VerifyUser, isAthourize('admin'), deleteInternshipController);
+router.delete('/:id', VerifyUser, isAuthorized('admin'), deleteInternshipController);
 
 export default router;
