@@ -16,7 +16,7 @@ const Navbar = (props) => {
 
   const navLinks = [
     { name: 'Scholarships', href: '/scholarships' },
-    { name: 'Blog', href: '/blog' },
+    { name: 'Blogs', href: '/blog' },
     { name: 'Newsletters', href: '#newsletter' },
     { name: 'Internships', href: '/internships' },
   ];
@@ -54,11 +54,16 @@ const Navbar = (props) => {
           <div className="hidden md:flex items-center gap-3">
             {isAuthenticated ? (
               <>
-                <Link to="/dashboard">
-                  <Button rounded="md" variant="outline" className="px-5">
-                    Dashboard
-                  </Button>
-                </Link>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-gray-700">
+                    Welcome, <span className="text-blue-600">{user?.fullName?.split(' ')[0] || 'User'}</span>
+                  </span>
+                  <Link to="/dashboard">
+                    <Button rounded="md" variant="outline" className="px-5">
+                      Dashboard
+                    </Button>
+                  </Link>
+                </div>
                 <button
                   onClick={handleLogout}
                   className="px-5 py-2 text-sm font-medium text-gray-600 hover:text-red-600 transition-colors"
@@ -67,11 +72,18 @@ const Navbar = (props) => {
                 </button>
               </>
             ) : (
-              <Link to={props.buttonLink}>
-                <Button rounded="md" className="px-6">
-                  {props.buttonText}
-                </Button>
-              </Link>
+              <>
+                <Link to="/login">
+                  <Button rounded="md" variant="outline" className="px-5">
+                    Log In
+                  </Button>
+                </Link>
+                <Link to={props.buttonLink}>
+                  <Button rounded="md" className="px-6">
+                    {props.buttonText}
+                  </Button>
+                </Link>
+              </>
             )}
           </div>
 
@@ -107,6 +119,11 @@ const Navbar = (props) => {
               ))}
               {isAuthenticated ? (
                 <>
+                  <div className="px-4 py-2">
+                    <span className="text-sm font-medium text-gray-700">
+                      Welcome, <span className="text-blue-600">{user?.fullName?.split(' ')[0] || 'User'}</span>
+                    </span>
+                  </div>
                   <Link to="/dashboard">
                     <Button rounded="md" className="mt-2 w-full">
                       Dashboard
@@ -120,11 +137,18 @@ const Navbar = (props) => {
                   </button>
                 </>
               ) : (
-                <Link to={props.buttonLink}>
-                  <Button rounded="md" className="mt-2 w-full">
-                    {props.buttonText}
-                  </Button>
-                </Link>
+                <>
+                  <Link to="/login">
+                    <Button rounded="md" variant="outline" className="mt-2 w-full">
+                      Log In
+                    </Button>
+                  </Link>
+                  <Link to={props.buttonLink}>
+                    <Button rounded="md" className="mt-2 w-full">
+                      {props.buttonText}
+                    </Button>
+                  </Link>
+                </>
               )}
             </div>
           </div>

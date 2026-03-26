@@ -7,17 +7,19 @@ export class CreateScholarshipDTO {
     this.country = data.country;
     this.deadline = data.deadline;
     this.funding_type = data.funding_type;
-    this.image = data.image; // 👈 add image
+    this.link = data.link;
+    this.duration = data.duration;
+    this.image = data.image;
   }
 
   static schema = Joi.object({
-    title: Joi.string().min(3).max(50).required(),
+    title: Joi.string().min(3).max(200).required(),
     description: Joi.string().min(50).max(600).required(),
     country: Joi.string().required(),
     deadline: Joi.date().greater('now').required(),
     funding_type: Joi.string().optional(),
-
-    // ✅ OPTIONAL image
+    link: Joi.string().uri().optional().allow(''),
+    duration: Joi.string().optional().allow(''),
     image: Joi.any().optional(),
   });
 
@@ -42,15 +44,19 @@ export class UpdateScholarshipDTO {
     this.country = data.country;
     this.deadline = data.deadline;
     this.funding_type = data.funding_type;
-    this.image = data.image; // 👈 add image
+    this.link = data.link;
+    this.duration = data.duration;
+    this.image = data.image;
   }
 
   static schema = Joi.object({
-    title: Joi.string().min(3).max(50),
+    title: Joi.string().min(3).max(200),
     description: Joi.string().min(50).max(600),
     country: Joi.string(),
     deadline: Joi.date().greater('now'),
     funding_type: Joi.string(),
+    link: Joi.string().uri().optional().allow(''),
+    duration: Joi.string().optional().allow(''),
     image: Joi.any().optional(),
   })
     .min(1)

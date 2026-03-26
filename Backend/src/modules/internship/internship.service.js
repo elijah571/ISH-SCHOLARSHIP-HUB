@@ -4,6 +4,7 @@ import {
   deleteFromCloudinary,
 } from '../../config/cloudinary.js';
 import { AppError } from '../../utils/AppError.js';
+import { logActivity } from '../admin/admin.service.js';
 
 export const createInternshipService = async (data) => {
   let uploadedImage;
@@ -20,6 +21,16 @@ export const createInternshipService = async (data) => {
   });
 
   await internship.save();
+
+  const creator = await import('../../models/user.model.js').then(m => m.User.findById(data.createdBy).lean());
+  await logActivity({
+    user: creator || { _id: data.createdBy, fullName: 'Admin', email: '' },
+    action: 'internship_created',
+    targetType: 'internship',
+    targetId: internship._id,
+    targetTitle: internship.title,
+  });
+
   return internship;
 };
 
@@ -104,6 +115,15 @@ export const updateInternshipService = async (id, data) => {
 
   await internship.save();
 
+  const creator = await import('../../models/user.model.js').then(m => m.User.findById(internship.createdBy).lean());
+  await logActivity({
+    user: creator || { _id: internship.createdBy, fullName: 'Admin', email: '' },
+    action: 'internship_updated',
+    targetType: 'internship',
+    targetId: internship._id,
+    targetTitle: internship.title,
+  });
+
   return internship;
 };
 
@@ -116,5 +136,15 @@ export const deleteInternshipService = async (id) => {
     await deleteFromCloudinary(internship.image.publicId);
   }
 
+  const title = internship.title;
+  const creator = await import('../../models/user.model.js').then(m => m.User.findById(internship.createdBy).lean());
   await internship.deleteOne();
+
+  await logActivity({
+    user: creator || { _id: internship.createdBy, fullName: 'Admin', email: '' },
+    action: 'internship_deleted',
+    targetType: 'internship',
+    targetId: id,
+    targetTitle: title,
+  });
 };

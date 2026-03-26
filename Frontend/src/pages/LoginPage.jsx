@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Button from '../components/Button';
 import Navbar from '../components/Navbar';
 import backgroundImage from '../assets/loginBg.jpg'
 import { AuthFooter } from './RegisterPage';
 import { useAuth } from '../context/AuthContext';
 
+
+// ========ICONS=============
 const TriangleLogo = () => (
   <svg className="w-[22px] h-[22px]" viewBox="0 0 32 32" fill="none">
     <path d="M16 4L28 28H4L16 4Z" fill="#2563EB" />
@@ -53,42 +55,6 @@ const LockIcon = () => (
   </svg>
 );
 
-// const Navbar = () => {
-//   const navLinks = [
-//     { name: 'Opportunities', href: '/scholarships' },
-//     { name: 'About Us', href: '#' },
-//     { name: 'Help', href: '#' }
-//   ];
-
-//   return (
-//     <nav className="h-[72px] bg-white border-b border-gray-200">
-//       <div className="flex items-center justify-between h-full px-[60px]">
-//         <Link to="/" className="flex items-center gap-[10px]">
-//           <TriangleLogo />
-//           <span className="text-[18px] font-semibold text-gray-900">Scholarship Hub</span>
-//         </Link>
-
-//         <div className="flex items-center gap-[28px]">
-//           {navLinks.map((link) => (
-//             <Link
-//               key={link.name}
-//               to={link.href}
-//               className="text-[14px] font-medium text-gray-700 hover:text-blue-600 transition-colors"
-//             >
-//               {link.name}
-//             </Link>
-//           ))}
-//           <Link to="/register">
-//             <Button className="px-4 py-2 text-[14px] font-semibold">
-//               Sign Up
-//             </Button>
-//           </Link>
-//         </div>
-//       </div>
-//     </nav>
-//   );
-// };
-
 
 const IconInput = ({ icon, ...props }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -122,6 +88,8 @@ const IconInput = ({ icon, ...props }) => {
 const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || null;
 
   const [formData, setFormData] = useState({
     email: '',
@@ -137,8 +105,16 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      await login(formData.email, formData.password);
-      navigate('/dashboard');
+      const response = await login(formData.email, formData.password);
+      const userRole = response?.data?.role;
+      
+      if (from) {
+        navigate(from, { replace: true });
+      } else if (userRole === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/user-dashboard');
+      }
     } catch (err) {
       const message =
         err.response?.data?.message || 'Login failed. Please try again.';
@@ -244,25 +220,6 @@ const LoginPage = () => {
                   {isLoading ? 'Signing In...' : 'Sign In'}
                 </Button>
               </form>
-
-              {/* <div className="flex items-center gap-3 my-5">
-                <div className="flex-1 h-px bg-gray-200" />
-                <span className="text-[11px] tracking-[1.5px] text-gray-400 uppercase">
-                  Or Continue With
-                </span>
-                <div className="flex-1 h-px bg-gray-200" />
-              </div> */}
-
-              {/* <div className="grid grid-cols-2 gap-3">
-                <button className="h-[42px] rounded-lg border border-gray-200 bg-white flex items-center justify-center gap-2 text-[14px] font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                  <GoogleIcon />
-                  Google
-                </button>
-                <button className="h-[42px] rounded-lg border border-gray-200 bg-white flex items-center justify-center gap-2 text-[14px] font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                  <LinkedInIcon />
-                  LinkedIn
-                </button>
-              </div> */}
             </div>
 
             <p className="text-center text-[14px] text-gray-500 mt-6">

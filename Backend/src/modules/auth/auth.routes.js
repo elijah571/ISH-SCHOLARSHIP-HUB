@@ -9,6 +9,12 @@ import {
   resetPassword,
   logout,
   logoutAll,
+  saveScholarship,
+  unsaveScholarship,
+  markAsApplied,
+  getSavedScholarships,
+  getAppliedScholarships,
+  getProfile,
 } from './auth.controller.js';
 
 import { authLimiter, authSlowDown } from '../../middleware/rateLimiter.js';
@@ -29,5 +35,13 @@ router.post('/refresh', refreshToken);
 /* ================= PROTECTED ROUTES ================= */
 router.post('/logout', VerifyUser, logout);
 router.post('/logout-all', VerifyUser, logoutAll);
+router.get('/profile', VerifyUser, getProfile);
+
+/* ================= SCHOLARSHIP ACTIONS ================= */
+router.post('/saved/:id', VerifyUser, saveScholarship);
+router.delete('/saved/:id', VerifyUser, unsaveScholarship);
+router.post('/applied/:id', VerifyUser, markAsApplied);
+router.get('/saved', VerifyUser, getSavedScholarships);
+router.get('/applied', VerifyUser, getAppliedScholarships);
 
 export default router;

@@ -4,6 +4,7 @@ import {
 } from '../../config/cloudinary.js';
 import { AppError } from '../../utils/AppError.js';
 import { Blog } from '../../models/blog.model.js';
+import { logActivity } from '../admin/admin.service.js';
 
 /* ===================== CREATE BLOG ===================== */
 export const createBlogService = async ({
@@ -38,6 +39,15 @@ export const createBlogService = async ({
   if (!blog) {
     throw new AppError('Failed to create blog', 500);
   }
+
+  const creator = await import('../../models/user.model.js').then(m => m.User.findById(createdBy).lean());
+  await logActivity({
+    user: creator || { _id: createdBy, fullName: 'Admin', email: '' },
+    action: 'blog_created',
+    targetType: 'blog',
+    targetId: blog._id,
+    targetTitle: blog.title,
+  });
 
   return blog;
 };
@@ -100,6 +110,16 @@ export const updateBlogService = async (id, data) => {
   });
 
   await blog.save();
+
+  const creator = await import('../../models/user.model.js').then(m => m.User.findById(blog.createdBy).lean());
+  await logActivity({
+    user: creator || { _id: blog.createdBy, fullName: 'Admin', email: '' },
+    action: 'blog_updated',
+    targetType: 'blog',
+    targetId: blog._id,
+    targetTitle: blog.title,
+  });
+
   return blog;
 };
 
@@ -112,5 +132,15 @@ export const deleteBlogService = async (id) => {
     await deleteFromCloudinary(blog.image.publicId);
   }
 
+  const title = blog.title;
+  const creator = await import('../../models/user.model.js').then(m => m.User.findById(blog.createdBy).lean());
   await blog.deleteOne();
+
+  await logActivity({
+    user: creator || { _id: blog.createdBy, fullName: 'Admin', email: '' },
+    action: 'blog_deleted',
+    targetType: 'blog',
+    targetId: id,
+    targetTitle: title,
+  });
 };

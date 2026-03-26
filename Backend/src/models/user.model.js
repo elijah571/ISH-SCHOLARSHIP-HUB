@@ -54,6 +54,20 @@ const userSchema = new mongoose.Schema(
       },
     ],
 
+    savedScholarships: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Scholarship',
+      },
+    ],
+
+    appliedScholarships: [
+      {
+        scholarship: { type: mongoose.Schema.Types.ObjectId, ref: 'Scholarship' },
+        appliedAt: { type: Date, default: Date.now }
+      }
+    ],
+
     createdAt: {
       type: Date,
       default: Date.now,

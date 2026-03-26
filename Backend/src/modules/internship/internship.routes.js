@@ -18,7 +18,7 @@ router.post(
   '/create',
   upload.single('image'),
   VerifyUser,
-  isAuthorize('admin'),
+  isAthourize('admin'),
   createInternshipController
 );
 

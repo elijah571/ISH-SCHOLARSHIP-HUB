@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 
 import { setSecurityHeaders, csrfProtection } from './middleware/security.js';
 import authRoutes from './modules/auth/auth.routes.js';
+import adminRoutes from './modules/admin/admin.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import csrfRoutes from './routes/csrf.routes.js';
 import { logger } from './utils/logger.js';
@@ -16,9 +17,18 @@ import newsletterRoutes from './modules/newsletter/newsletter.routes.js';
 
 export const app = express();
 
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.CLIENT_URL 
+    : ['http://localhost:5173', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-XSRF-TOKEN', 'X-Requested-With'],
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({ origin: true, credentials: true }));
 app.use(helmet());
 app.use(setSecurityHeaders);
 
@@ -45,6 +55,7 @@ app.use((req, res, next) => {
 
 app.use('/api', csrfRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/scholarship', scholarshipRoutes);
 app.use('/api/blog', blogRoutes);
 app.use('/api/newsletter', newsletterRoutes);
