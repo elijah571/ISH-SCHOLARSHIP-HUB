@@ -4,7 +4,6 @@ import { Server } from 'socket.io';
 import { app } from './app.js';
 import { connectDB } from './config/dataBase.js';
 import { logger } from './utils/logger.js';
-import { chatSocket } from './sockets/chat.socket.js';
 
 dotenv.config();
 
@@ -18,8 +17,6 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: '*' },
 });
-
-chatSocket(io);
 
 const startServer = async () => {
   try {
