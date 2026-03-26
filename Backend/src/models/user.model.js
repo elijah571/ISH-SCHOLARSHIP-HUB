@@ -90,10 +90,7 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   try {
     return await argon2.verify(this.password, candidatePassword);
   } catch (error) {
-    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
-      .eyJ1c2VySWQiOiI2OTc0ZmYwODQzN2E3ZjU4OTg0ZGQyM2QiLCJpYXQiOjE3NjkyNzUxNDUsImV4cCI6MTc2OTM2MTU0NX0
-      .nyPKOtu9xPt2PSgSR0OFSWtyqJGMR_ttVZTy94jQdhU;
-    throw error;
+    console.error(error);
   }
 };
 
