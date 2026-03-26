@@ -35,9 +35,7 @@ api.interceptors.request.use(async (config) => {
   }
 
   // For mutating requests, ensure we have a CSRF token
-  const needsCsrf = ['post', 'patch', 'put', 'delete'].includes(
-    config.method?.toLowerCase()
-  );
+  const needsCsrf = ['post', 'patch', 'put', 'delete'].includes(config.method?.toLowerCase());
   if (needsCsrf) {
     if (!csrfToken) {
       await fetchCsrfToken();

@@ -19,7 +19,7 @@ export const createBlogController = asyncHandler(async (req, res) => {
 
   const blog = await createBlogService({
     ...validatedData,
-    publush: validatedData.published, // map DTO → model
+    published: validatedData.published,
     createdBy: req.user._id,
   });
 
@@ -61,7 +61,7 @@ export const updateBlogController = asyncHandler(async (req, res) => {
 
   const blog = await updateBlogService(req.params.id, {
     ...validatedData,
-    publush: validatedData.published,
+    published: validatedData.published,
   });
 
   res.status(200).json({

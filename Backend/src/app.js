@@ -15,13 +15,15 @@ import scholarshipRoutes from './modules/scholarship/scholarship.routes.js';
 import blogRoutes from './modules/blog/blog.route.js';
 import newsletterRoutes from './modules/newsletter/newsletter.routes.js';
 import internshipRoutes from './modules/internship/internship.routes.js';
+import chatRoutes from './modules/chat/chat.routes.js';
 
 export const app = express();
 
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? process.env.CLIENT_URL 
-    : ['http://localhost:5173', 'http://localhost:3000'],
+  origin:
+    process.env.NODE_ENV === 'production'
+      ? process.env.CLIENT_URL
+      : ['http://localhost:5173', 'http://localhost:3000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-XSRF-TOKEN', 'X-Requested-With'],
@@ -61,5 +63,6 @@ app.use('/api/scholarship', scholarshipRoutes);
 app.use('/api/blog', blogRoutes);
 app.use('/api/newsletter', newsletterRoutes);
 app.use('/api/internship', internshipRoutes);
+app.use('/api/chat', chatRoutes);
 
 app.use(errorHandler);

@@ -8,7 +8,7 @@ import {
   deleteScholarshipController,
 } from './scholarship.controller.js';
 import { VerifyUser } from '../../middleware/auth.middleware.js';
-import { isAthourize } from '../../middleware/role.middleware.js';
+import { isAuthorized } from '../../middleware/role.middleware.js';
 
 const router = express.Router();
 
@@ -17,13 +17,19 @@ router.post(
   '/create',
   upload.single('image'),
   VerifyUser,
-  isAthourize('admin'),
+  isAuthorized('admin'),
   createScholarshipController
 );
 
 router.get('/', getScholarshipsController);
 router.get('/:id', getScholarshipByIdController);
-router.patch('/:id', upload.single('image'), updateScholarshipController);
-router.delete('/:id', deleteScholarshipController);
+router.patch(
+  '/:id',
+  upload.single('image'),
+  VerifyUser,
+  isAuthorized('admin'),
+  updateScholarshipController
+);
+router.delete('/:id', VerifyUser, isAuthorized('admin'), deleteScholarshipController);
 
 export default router;

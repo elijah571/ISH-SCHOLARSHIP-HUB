@@ -1,8 +1,5 @@
 import { Internship } from '../../models/internship.model.js';
-import {
-  uploadsToCloudinary,
-  deleteFromCloudinary,
-} from '../../config/cloudinary.js';
+import { uploadsToCloudinary, deleteFromCloudinary } from '../../config/cloudinary.js';
 import { AppError } from '../../utils/AppError.js';
 import { logActivity } from '../admin/admin.service.js';
 
@@ -22,7 +19,9 @@ export const createInternshipService = async (data) => {
 
   await internship.save();
 
-  const creator = await import('../../models/user.model.js').then(m => m.User.findById(data.createdBy).lean());
+  const creator = await import('../../models/user.model.js').then((m) =>
+    m.User.findById(data.createdBy).lean()
+  );
   await logActivity({
     user: creator || { _id: data.createdBy, fullName: 'Admin', email: '' },
     action: 'internship_created',
@@ -62,10 +61,7 @@ export const getInternshipsService = async ({
   const skip = (page - 1) * limit;
 
   const [internship, total] = await Promise.all([
-    Internship.find(query)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(Number(limit)),
+    Internship.find(query).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
     Internship.countDocuments(query),
   ]);
 
@@ -95,10 +91,7 @@ export const updateInternshipService = async (id, data) => {
       await deleteFromCloudinary(internship.image.publicId);
     }
 
-    const uploaded = await uploadsToCloudinary(
-      data.image.buffer,
-      'internships'
-    );
+    const uploaded = await uploadsToCloudinary(data.image.buffer, 'internships');
 
     data.image = {
       url: uploaded.secure_url,
@@ -115,7 +108,9 @@ export const updateInternshipService = async (id, data) => {
 
   await internship.save();
 
-  const creator = await import('../../models/user.model.js').then(m => m.User.findById(internship.createdBy).lean());
+  const creator = await import('../../models/user.model.js').then((m) =>
+    m.User.findById(internship.createdBy).lean()
+  );
   await logActivity({
     user: creator || { _id: internship.createdBy, fullName: 'Admin', email: '' },
     action: 'internship_updated',
@@ -130,14 +125,16 @@ export const updateInternshipService = async (id, data) => {
 /* ===================== DELETE ===================== */
 export const deleteInternshipService = async (id) => {
   const internship = await Internship.findById(id);
-  if (!internship) throw new AppError('Scholarship not found', 404);
+  if (!internship) throw new AppError('Internship not found', 404);
 
   if (internship.image?.publicId) {
     await deleteFromCloudinary(internship.image.publicId);
   }
 
   const title = internship.title;
-  const creator = await import('../../models/user.model.js').then(m => m.User.findById(internship.createdBy).lean());
+  const creator = await import('../../models/user.model.js').then((m) =>
+    m.User.findById(internship.createdBy).lean()
+  );
   await internship.deleteOne();
 
   await logActivity({

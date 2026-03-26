@@ -11,13 +11,6 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_SECRET,
 });
 
-// const bufferToStream = (buffer) => {
-//   const readable = new Readable();
-//   readable.push(buffer);
-//   readable.push(null);
-//   return readable;
-// };
-
 export const uploadsToCloudinary = (fileBuffer, folder = 'uploads') => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(

@@ -17,12 +17,9 @@ export class CreateScholarshipDTO {
     description: Joi.string().min(50).max(600).required(),
     country: Joi.string().required(),
     deadline: Joi.date().greater('now').required(),
-    funding_type: Joi.string().optional(),
-    link: Joi.string().uri().optional().allow(''),
-    duration: Joi.string().optional().allow(''),
     funding_type: Joi.string().required(),
-    duration: Joi.string().required(),
     link: Joi.string().uri().required(),
+    duration: Joi.string().required(),
     image: Joi.any().optional(),
   });
 
@@ -56,10 +53,8 @@ export class UpdateScholarshipDTO {
     country: Joi.string(),
     deadline: Joi.date().greater('now'),
     funding_type: Joi.string(),
-    link: Joi.string().uri().optional().allow(''),
-    duration: Joi.string().optional().allow(''),
-    duration: Joi.string(),
-    link: Joi.string().uri(),
+    link: Joi.string().uri().optional(),
+    duration: Joi.string().optional(),
     image: Joi.any().optional(),
   })
     .min(1)

@@ -43,7 +43,9 @@ export const createScholarshipService = async ({
     throw new AppError('Failed to create scholarship', 500);
   }
 
-  const creator = await import('../../models/user.model.js').then(m => m.User.findById(createdBy).lean());
+  const creator = await import('../../models/user.model.js').then((m) =>
+    m.User.findById(createdBy).lean()
+  );
   await logActivity({
     user: creator || { _id: createdBy, fullName: 'Admin', email: '' },
     action: 'scholarship_created',
@@ -126,7 +128,9 @@ export const updateScholarshipService = async (id, data) => {
 
   await scholarship.save();
 
-  const creator = await import('../../models/user.model.js').then(m => m.User.findById(scholarship.createdBy).lean());
+  const creator = await import('../../models/user.model.js').then((m) =>
+    m.User.findById(scholarship.createdBy).lean()
+  );
   await logActivity({
     user: creator || { _id: scholarship.createdBy, fullName: 'Admin', email: '' },
     action: 'scholarship_updated',
@@ -148,7 +152,9 @@ export const deleteScholarshipService = async (id) => {
   }
 
   const title = scholarship.title;
-  const creator = await import('../../models/user.model.js').then(m => m.User.findById(scholarship.createdBy).lean());
+  const creator = await import('../../models/user.model.js').then((m) =>
+    m.User.findById(scholarship.createdBy).lean()
+  );
   await scholarship.deleteOne();
 
   await logActivity({
