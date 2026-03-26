@@ -10,6 +10,7 @@ export class CreateInternshipDTO {
     this.institution = data.institution;
     this.startDate = data.startDate;
     this.endDate = data.endDate;
+    this.link = data.link;
     this.image = data.image;
   }
 
@@ -22,8 +23,7 @@ export class CreateInternshipDTO {
     institution: Joi.string().required(),
     startDate: Joi.date().greater('now').required(),
     endDate: Joi.date().greater('now').required(),
-
-    //  OPTIONAL image
+    link: Joi.string().uri().required(),
     image: Joi.any().optional(),
   });
 
@@ -34,13 +34,12 @@ export class CreateInternshipDTO {
     });
 
     if (error) {
-      throw new Error(error.details.map((d) => d.message).join(', '));
+      throw new Error(error.details.map((err) => err.message).join(', '));
     }
 
     return value;
   }
 }
-
 export class UpdateInternshipDTO {
   constructor(data) {
     this.title = data.title;
@@ -48,9 +47,10 @@ export class UpdateInternshipDTO {
     this.country = data.country;
     this.deadline = data.deadline;
     this.type = data.type;
-    this.institution = institution;
-    this.startDate = startDate;
-    this.endDate = endDate;
+    this.institution = data.institution;
+    this.startDate = data.startDate;
+    this.endDate = data.endDate;
+    this.link = data.link; // ✅ add
     this.image = data.image;
   }
 
@@ -63,13 +63,15 @@ export class UpdateInternshipDTO {
     institution: Joi.string(),
     startDate: Joi.date(),
     endDate: Joi.date(),
+
+    link: Joi.string().uri(), // ✅ optional for update
+
     image: Joi.any().optional(),
   })
     .min(1)
     .messages({
       'object.min': 'At least one field must be updated',
     });
-
   validate() {
     const { error, value } = UpdateInternshipDTO.schema.validate(this, {
       abortEarly: false,
@@ -77,7 +79,7 @@ export class UpdateInternshipDTO {
     });
 
     if (error) {
-      throw new Error(error.details.map((d) => d.message).join(', '));
+      throw new Error(error.details.map((err) => err.message).join(', '));
     }
 
     return value;

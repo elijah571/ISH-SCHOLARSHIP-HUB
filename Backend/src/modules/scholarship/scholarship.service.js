@@ -1,8 +1,5 @@
 import { Scholarship } from '../../models/scholarship.js';
-import {
-  uploadsToCloudinary,
-  deleteFromCloudinary,
-} from '../../config/cloudinary.js';
+import { uploadsToCloudinary, deleteFromCloudinary } from '../../config/cloudinary.js';
 import { AppError } from '../../utils/AppError.js';
 import { logActivity } from '../admin/admin.service.js';
 
@@ -10,6 +7,8 @@ export const createScholarshipService = async ({
   title,
   description,
   country,
+  duration,
+  link,
   deadline,
   funding_type,
   link,
@@ -31,6 +30,8 @@ export const createScholarshipService = async ({
     funding_type,
     link: link || undefined,
     duration: duration || undefined,
+    link,
+    duration,
     image: uploadedImage
       ? {
           url: uploadedImage.secure_url,
@@ -80,10 +81,7 @@ export const getScholarshipsService = async ({
   const skip = (page - 1) * limit;
 
   const [scholarships, total] = await Promise.all([
-    Scholarship.find(query)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(Number(limit)),
+    Scholarship.find(query).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
     Scholarship.countDocuments(query),
   ]);
 
@@ -113,10 +111,7 @@ export const updateScholarshipService = async (id, data) => {
       await deleteFromCloudinary(scholarship.image.publicId);
     }
 
-    const uploaded = await uploadsToCloudinary(
-      data.image.buffer,
-      'scholarships'
-    );
+    const uploaded = await uploadsToCloudinary(data.image.buffer, 'scholarships');
 
     data.image = {
       url: uploaded.secure_url,

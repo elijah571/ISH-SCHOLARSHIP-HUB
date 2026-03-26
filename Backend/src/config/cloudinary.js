@@ -11,12 +11,12 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_SECRET,
 });
 
-const bufferToStream = (buffer) => {
-  const readable = new Readable();
-  readable.push(buffer);
-  readable.push(null);
-  return readable;
-};
+// const bufferToStream = (buffer) => {
+//   const readable = new Readable();
+//   readable.push(buffer);
+//   readable.push(null);
+//   return readable;
+// };
 
 export const uploadsToCloudinary = (fileBuffer, folder = 'uploads') => {
   return new Promise((resolve, reject) => {
@@ -24,20 +24,14 @@ export const uploadsToCloudinary = (fileBuffer, folder = 'uploads') => {
       {
         folder,
         resource_type: 'auto',
+        timeout: 60000, // 🔥 important
       },
       (error, result) => {
         if (error) {
-          logger.error('Cloudinary upload error:', error.message);
+          console.error('Cloudinary upload error:', error);
           return reject(error);
         }
 
-        if (!result?.secure_url) {
-          return reject(
-            new Error('Cloudinary upload failed: secure_url missing')
-          );
-        }
-
-        logger.info(`Uploaded to Cloudinary: ${result.secure_url}`);
         resolve({
           secure_url: result.secure_url,
           public_id: result.public_id,
@@ -45,7 +39,7 @@ export const uploadsToCloudinary = (fileBuffer, folder = 'uploads') => {
       }
     );
 
-    bufferToStream(fileBuffer).pipe(stream);
+    stream.end(fileBuffer); // ✅ FIX (more reliable than pipe)
   });
 };
 

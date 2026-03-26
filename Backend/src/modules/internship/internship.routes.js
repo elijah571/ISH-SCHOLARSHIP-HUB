@@ -2,14 +2,14 @@ import express from 'express';
 import { upload } from '../../middleware/upload.js';
 
 import { VerifyUser } from '../../middleware/auth.middleware.js';
-import { isAthourize } from '../../middleware/role.middleware.js';
 import {
   createInternshipController,
   deleteInternshipController,
   getInternshipsController,
   updateInternshipController,
+  getInternshipByIdController, // ✅ ADD THIS
 } from './internship.controller.js';
-import { getBlogByIdController } from '../blog/blog.controller.js';
+import { isAthourize } from '../../middleware/role.middleware.js';
 
 const router = express.Router();
 
@@ -29,15 +29,10 @@ router.patch(
   '/:id',
   upload.single('image'),
   VerifyUser,
-  isAuthorize('admin'),
+  isAthourize('admin'),
   updateInternshipController
 );
 
-router.delete(
-  '/:id',
-  VerifyUser,
-  isAuthorize('admin'),
-  deleteInternshipController
-);
+router.delete('/:id', VerifyUser, isAthourize('admin'), deleteInternshipController);
 
 export default router;

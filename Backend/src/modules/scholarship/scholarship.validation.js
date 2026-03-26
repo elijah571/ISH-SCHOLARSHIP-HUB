@@ -20,23 +20,22 @@ export class CreateScholarshipDTO {
     funding_type: Joi.string().optional(),
     link: Joi.string().uri().optional().allow(''),
     duration: Joi.string().optional().allow(''),
+    funding_type: Joi.string().required(),
+    duration: Joi.string().required(),
+    link: Joi.string().uri().required(),
     image: Joi.any().optional(),
   });
 
   validate() {
-    const { error, value } = CreateScholarshipDTO.schema.validate(this, {
-      abortEarly: false,
-      stripUnknown: true,
-    });
+    const { error, value } = CreateScholarshipDTO.schema.validate(this);
 
     if (error) {
-      throw new Error(error.details.map((d) => d.message).join(', '));
+      throw new Error(error.details[0].message);
     }
 
     return value;
   }
 }
-
 export class UpdateScholarshipDTO {
   constructor(data) {
     this.title = data.title;
@@ -47,6 +46,8 @@ export class UpdateScholarshipDTO {
     this.link = data.link;
     this.duration = data.duration;
     this.image = data.image;
+    this.image = data.image;
+    this.duration = data.duration;
   }
 
   static schema = Joi.object({
@@ -57,21 +58,19 @@ export class UpdateScholarshipDTO {
     funding_type: Joi.string(),
     link: Joi.string().uri().optional().allow(''),
     duration: Joi.string().optional().allow(''),
+    duration: Joi.string(),
+    link: Joi.string().uri(),
     image: Joi.any().optional(),
   })
     .min(1)
     .messages({
       'object.min': 'At least one field must be updated',
     });
-
   validate() {
-    const { error, value } = UpdateScholarshipDTO.schema.validate(this, {
-      abortEarly: false,
-      stripUnknown: true,
-    });
+    const { error, value } = UpdateScholarshipDTO.schema.validate(this);
 
     if (error) {
-      throw new Error(error.details.map((d) => d.message).join(', '));
+      throw new Error(error.details[0].message);
     }
 
     return value;
