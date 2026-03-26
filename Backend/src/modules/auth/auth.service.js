@@ -5,9 +5,11 @@ import { User } from '../../models/user.model.js';
 import { sendEmail } from '../../services/email.js';
 import { AppError } from '../../utils/AppError.js';
 import { signAccessToken, signRefreshToken } from '../../utils/token.js';
+import { logger } from '../../utils/logger.js';
+import { logActivity } from '../admin/admin.service.js';
 
 function getAppUrl() {
-  return process.env.APP_URL || `http://localhost:${process.env.PORT}`;
+  return process.env.APP_URL || `http://localhost:${process.env.PORT || 3000}`;
 }
 
 /* ================= REGISTER ================= */
@@ -23,6 +25,14 @@ export const registerUserService = async ({ fullName, email, password }) => {
     password,
   });
 
+  await logActivity({
+    user: newUser,
+    action: 'registered',
+    targetType: 'user',
+    targetId: newUser._id,
+    targetTitle: newUser.fullName,
+  });
+
   const verifyToken = jwt.sign(
     { userId: newUser._id },
     process.env.JWT_EMAIL_VERIFY_SECRET,
@@ -31,18 +41,28 @@ export const registerUserService = async ({ fullName, email, password }) => {
 
   const verifyUrl = `${getAppUrl()}/api/auth/verify-email?token=${verifyToken}`;
 
-  await sendEmail(
+  logger.info(`Sending verification email to ${email}...`);
+  const emailResult = await sendEmail(
     newUser.email,
     'Verify your email',
     `<p>Click below to verify your email:</p>
      <a href="${verifyUrl}">Verify Email</a>`
   );
 
+  if (!emailResult.success && !emailResult.skipped) {
+    logger.warn(`Failed to send verification email to ${email}:`, emailResult.error);
+  } else if (emailResult.skipped) {
+    logger.warn(`Email skipped for ${email} - credentials may not be configured`);
+  } else {
+    logger.info(`Verification email sent to ${email}`);
+  }
+
   return {
     id: newUser._id,
     email: newUser.email,
     role: newUser.role,
     isEmailVerified: newUser.isEmailVerified,
+    emailSent: emailResult.success,
   };
 };
 

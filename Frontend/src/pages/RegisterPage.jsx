@@ -78,45 +78,6 @@ const GlobeIllustration = () => (
   </svg>
 );
 
-// const Navbar = () => {
-//   const navLinks = [
-//     { name: 'Find Scholarships', href: '/scholarships' },
-//     { name: 'University Guide', href: '#' },
-//     { name: 'Resources', href: '#' }
-//   ];
-
-//   return (
-//     <nav className="h-[72px] bg-white border-b border-slate-200">
-//       <div className="flex items-center justify-between h-full px-[60px]">
-//         <div className="flex items-center gap-[10px]">
-//           <TriangleLogo />
-//           <span className="text-[18px] font-semibold text-slate-900">Scholarship Hub</span>
-//         </div>
-
-//         <div className="hidden md:flex items-center gap-[28px]">
-//           {navLinks.map((link) => (
-//             <Link
-//               key={link.name}
-//               to={link.href}
-//               className="text-[14px] font-medium text-slate-600 hover:text-blue-600 transition-colors"
-//             >
-//               {link.name}
-//             </Link>
-//           ))}
-//         </div>
-
-//         <div>
-//           <Link to="/login">
-//             <Button className="px-[18px] py-2 text-[14px] font-semibold">
-//               Log in
-//             </Button>
-//           </Link>
-//         </div>
-//       </div>
-//     </nav>
-//   );
-// };
-
 export const AuthFooter = () => {
   return (
     <footer className="h-14 bg-slate-50 border-t border-slate-200">
@@ -208,7 +169,6 @@ const RegisterPage = () => {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
-    degreeLevel: '',
     password: '',
     confirmPassword: '',
     agreeTerms: false

@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import Card from '../Card';
 
 const BlogCard = ({ post }) => {
-  const { id, title, excerpt, author, date, category, readTime, image } = post;
+  const { _id, id, title, excerpt, author, date, category, readTime, image } = post;
+  const postId = _id || id;
 
   const categoryColors = {
     academic: 'bg-blue-100 text-blue-800',
@@ -14,7 +15,7 @@ const BlogCard = ({ post }) => {
 
   return (
     <Card className="overflow-hidden group">
-    <Link to={`/blog/${id}`} className="block overflow-hidden">
+    <Link to={`/blog/${postId}`} className="block overflow-hidden">
         <img 
           src={image} 
           alt={title}
@@ -29,7 +30,7 @@ const BlogCard = ({ post }) => {
           </span>
         </Link>
 
-        <Link to={`/blog/${id}`}>
+        <Link to={`/blog/${postId}`}>
           <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors duration-200 line-clamp-2">
             {title}
           </h3>
@@ -43,10 +44,10 @@ const BlogCard = ({ post }) => {
           <div className="flex items-center">
             <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-2">
               <span className="text-blue-600 font-medium text-xs">
-                {author.name.charAt(0)}
+                {author?.name?.charAt(0) || 'A'}
               </span>
             </div>
-            <span className="font-medium text-gray-700">{author.name}</span>
+            <span className="font-medium text-gray-700">{author?.name || 'Admin'}</span>
           </div>
           <div className="flex items-center">
             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

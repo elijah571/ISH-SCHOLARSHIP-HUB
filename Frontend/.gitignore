@@ -22,3 +22,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# environmental variables
+.env
+
+# Agent/Session files
+.agent/
+.sisyphus/
+AGENTS.md
+FRONTENDGuide.md
+

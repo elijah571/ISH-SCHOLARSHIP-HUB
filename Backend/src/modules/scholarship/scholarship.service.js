@@ -1,6 +1,7 @@
 import { Scholarship } from '../../models/scholarship.js';
 import { uploadsToCloudinary, deleteFromCloudinary } from '../../config/cloudinary.js';
 import { AppError } from '../../utils/AppError.js';
+import { logActivity } from '../admin/admin.service.js';
 
 export const createScholarshipService = async ({
   title,
@@ -10,12 +11,13 @@ export const createScholarshipService = async ({
   link,
   deadline,
   funding_type,
-  image, // optional
+  link,
+  duration,
+  image,
   createdBy,
 }) => {
   let uploadedImage = null;
 
-  // ✅ Upload image only if provided
   if (image) {
     uploadedImage = await uploadsToCloudinary(image.buffer, 'scholarships');
   }
@@ -26,6 +28,8 @@ export const createScholarshipService = async ({
     country,
     deadline,
     funding_type,
+    link: link || undefined,
+    duration: duration || undefined,
     link,
     duration,
     image: uploadedImage
@@ -33,13 +37,22 @@ export const createScholarshipService = async ({
           url: uploadedImage.secure_url,
           publicId: uploadedImage.public_id,
         }
-      : undefined, // 👈 image remains optional
+      : undefined,
     createdBy,
   });
 
   if (!scholarship) {
     throw new AppError('Failed to create scholarship', 500);
   }
+
+  const creator = await import('../../models/user.model.js').then(m => m.User.findById(createdBy).lean());
+  await logActivity({
+    user: creator || { _id: createdBy, fullName: 'Admin', email: '' },
+    action: 'scholarship_created',
+    targetType: 'scholarship',
+    targetId: scholarship._id,
+    targetTitle: scholarship.title,
+  });
 
   return scholarship;
 };
@@ -115,6 +128,15 @@ export const updateScholarshipService = async (id, data) => {
 
   await scholarship.save();
 
+  const creator = await import('../../models/user.model.js').then(m => m.User.findById(scholarship.createdBy).lean());
+  await logActivity({
+    user: creator || { _id: scholarship.createdBy, fullName: 'Admin', email: '' },
+    action: 'scholarship_updated',
+    targetType: 'scholarship',
+    targetId: scholarship._id,
+    targetTitle: scholarship.title,
+  });
+
   return scholarship;
 };
 
@@ -127,5 +149,15 @@ export const deleteScholarshipService = async (id) => {
     await deleteFromCloudinary(scholarship.image.publicId);
   }
 
+  const title = scholarship.title;
+  const creator = await import('../../models/user.model.js').then(m => m.User.findById(scholarship.createdBy).lean());
   await scholarship.deleteOne();
+
+  await logActivity({
+    user: creator || { _id: scholarship.createdBy, fullName: 'Admin', email: '' },
+    action: 'scholarship_deleted',
+    targetType: 'scholarship',
+    targetId: id,
+    targetTitle: title,
+  });
 };
