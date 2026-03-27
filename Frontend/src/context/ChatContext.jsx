@@ -1,16 +1,21 @@
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import io from 'socket.io-client';
+import { useAuth } from './AuthContext';
+import { getAccessToken } from '../services/api';
 
 const ChatContext = createContext();
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000';
 
 export const ChatProvider = ({ children }) => {
+  const { user } = useAuth();
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState([]);
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [typingUsers, setTypingUsers] = useState([]);
   const [error, setError] = useState(null);
+  const [latestConversationActivity, setLatestConversationActivity] = useState(null);
 
   const socketRef = useRef(null);
   const isAuthenticatedRef = useRef(false);
@@ -27,8 +32,8 @@ export const ChatProvider = ({ children }) => {
 
     newSocket.on('connect', () => {
       setIsConnected(true);
-      if (localStorage.getItem('accessToken') && !isAuthenticatedRef.current) {
-        const token = localStorage.getItem('accessToken');
+      const token = getAccessToken();
+      if (token && !isAuthenticatedRef.current) {
         newSocket.emit('authenticate', token);
       }
     });
@@ -51,6 +56,13 @@ export const ChatProvider = ({ children }) => {
     });
 
     newSocket.on('receive_message', (data) => {
+      setLatestConversationActivity({
+        conversationId: data.conversationId,
+        sender: data.sender?.fullName || data.sender?.email || 'Unknown',
+        message: data.message,
+        timestamp: Date.now(),
+        type: 'message',
+      });
       setMessages((prev) => {
         if (prev.some((msg) => msg._id === data._id)) {
           return prev;
@@ -92,6 +104,16 @@ export const ChatProvider = ({ children }) => {
       );
     });
 
+    newSocket.on('conversation_updated', (data) => {
+      setLatestConversationActivity({
+        conversationId: data._id,
+        sender: data.participant?.fullName || data.admin?.fullName || 'Unknown',
+        message: data.lastMessage || data.subject || '',
+        timestamp: Date.now(),
+        type: 'conversation',
+      });
+    });
+
     newSocket.on('online_users', (data) => {
       setOnlineUsers(data);
     });
@@ -110,7 +132,11 @@ export const ChatProvider = ({ children }) => {
     });
 
     newSocket.on('new_message_notification', (data) => {
-      console.log('New message notification:', data);
+      setLatestConversationActivity({
+        ...data,
+        timestamp: Date.now(),
+        type: 'notification',
+      });
     });
 
     socketRef.current = newSocket;
@@ -122,69 +148,80 @@ export const ChatProvider = ({ children }) => {
     };
   }, []);
 
-  const authenticateSocket = (token) => {
+  useEffect(() => {
+    const token = getAccessToken();
+    if (user && token && socketRef.current && !isAuthenticatedRef.current) {
+      socketRef.current.emit('authenticate', token);
+    }
+
+    if (!user) {
+      isAuthenticatedRef.current = false;
+    }
+  }, [isConnected, user]);
+
+  const authenticateSocket = useCallback((token) => {
     if (socketRef.current && token) {
       socketRef.current.emit('authenticate', token);
     }
-  };
+  }, []);
 
-  const joinConversation = (conversationId) => {
+  const joinConversation = useCallback((conversationId) => {
     if (socketRef.current && conversationId) {
       socketRef.current.emit('join_conversation', conversationId);
     }
-  };
+  }, []);
 
-  const leaveConversation = (conversationId) => {
+  const leaveConversation = useCallback((conversationId) => {
     if (socketRef.current && conversationId) {
       socketRef.current.emit('leave_conversation', conversationId);
     }
-  };
+  }, []);
 
-  const sendMessage = (conversationId, message, attachments = []) => {
+  const sendMessage = useCallback((conversationId, message, attachments = []) => {
     if (socketRef.current) {
       socketRef.current.emit('send_message', { conversationId, message, attachments });
     }
-  };
+  }, []);
 
-  const editMessage = (messageId, newMessage) => {
+  const editMessage = useCallback((messageId, newMessage) => {
     if (socketRef.current) {
       socketRef.current.emit('edit_message', { messageId, newMessage });
     }
-  };
+  }, []);
 
-  const deleteMessage = (messageId, conversationId) => {
+  const deleteMessage = useCallback((messageId, conversationId) => {
     if (socketRef.current) {
       socketRef.current.emit('delete_message', { messageId, conversationId });
     }
-  };
+  }, []);
 
-  const markAsRead = (conversationId) => {
+  const markAsRead = useCallback((conversationId) => {
     if (socketRef.current) {
       socketRef.current.emit('mark_read', { conversationId });
     }
-  };
+  }, []);
 
-  const notifyTyping = (conversationId) => {
+  const notifyTyping = useCallback((conversationId) => {
     if (socketRef.current) {
       socketRef.current.emit('user_typing', { conversationId });
     }
-  };
+  }, []);
 
-  const notifyStopTyping = (conversationId) => {
+  const notifyStopTyping = useCallback((conversationId) => {
     if (socketRef.current) {
       socketRef.current.emit('stop_typing', { conversationId });
     }
-  };
+  }, []);
 
-  const getOnlineUsers = (conversationId) => {
+  const getOnlineUsers = useCallback((conversationId) => {
     if (socketRef.current) {
       socketRef.current.emit('get_online_users', conversationId);
     }
-  };
+  }, []);
 
-  const clearMessages = () => {
+  const clearMessages = useCallback(() => {
     setMessages([]);
-  };
+  }, []);
 
   return (
     <ChatContext.Provider
@@ -196,6 +233,7 @@ export const ChatProvider = ({ children }) => {
         typingUsers,
         error,
         setError,
+        latestConversationActivity,
         authenticateSocket,
         joinConversation,
         leaveConversation,

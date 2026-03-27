@@ -41,7 +41,11 @@ export const ChatPage = () => {
       <div className="flex-1 w-full max-w-[1400px] mx-auto bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="flex h-full min-h-[600px]">
           <div className="w-80 border-r border-gray-200 bg-gray-50/30">
-            <ConversationList onSelectConversation={setSelectedConversation} adminMode={false} />
+            <ConversationList
+              onSelectConversation={setSelectedConversation}
+              selectedConversationId={selectedConversation}
+              adminMode={false}
+            />
           </div>
           <div className="flex-1 bg-white relative">
             {selectedConversation ? (

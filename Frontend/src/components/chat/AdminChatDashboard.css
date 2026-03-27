@@ -2,14 +2,16 @@
 .admin-chat-dashboard {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  background: #f0f2f5;
+  height: 100%;
+  min-height: calc(100vh - 80px);
+  background:
+    radial-gradient(circle at top left, rgba(34, 158, 217, 0.08), transparent 30%),
+    linear-gradient(180deg, #f6fbff 0%, #edf4f9 100%);
 }
 
 .dashboard-header {
-  background: white;
-  padding: 20px 30px;
-  border-bottom: 1px solid #ddd;
+  background: transparent;
+  padding: 22px 28px 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -17,8 +19,8 @@
 
 .dashboard-header h2 {
   margin: 0;
-  font-size: 24px;
-  color: #333;
+  font-size: 28px;
+  color: #10233f;
 }
 
 .connection-status {
@@ -26,7 +28,10 @@
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  color: #666;
+  color: #52647d;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 8px 12px;
+  border-radius: 999px;
 }
 
 .status-dot {
@@ -51,28 +56,27 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
-  padding: 20px 30px;
-  background: white;
+  padding: 0 28px 18px;
 }
 
 .stat-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #229ed9 0%, #0f8ac7 100%);
   color: white;
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 18px 40px rgba(34, 158, 217, 0.14);
 }
 
 .stat-card:nth-child(2) {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
 }
 
 .stat-card:nth-child(3) {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
 }
 
 .stat-card:nth-child(4) {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  background: linear-gradient(135deg, #fb7185 0%, #ef4444 100%);
 }
 
 .stat-card h4 {
@@ -90,19 +94,21 @@
 
 .dashboard-content {
   display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 20px;
+  grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+  gap: 18px;
   flex: 1;
-  padding: 20px 30px;
+  padding: 0 28px 28px;
   overflow: hidden;
 }
 
 .conversations-panel {
   min-height: 0;
+  overflow: hidden;
 }
 
 .chat-panel {
   min-height: 0;
+  overflow: hidden;
 }
 
 .no-selection {
@@ -110,12 +116,13 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  background: white;
-  border-radius: 8px;
-  color: #999;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(14px);
+  border-radius: 24px;
+  color: #667085;
   font-size: 16px;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
 .unauthorized {
@@ -135,7 +142,7 @@
   }
 
   .conversations-panel {
-    max-height: 300px;
+    max-height: 360px;
   }
 }
 

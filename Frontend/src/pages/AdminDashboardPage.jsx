@@ -19,7 +19,7 @@ const menuItems = [
   { name: 'Blog Posts', icon: BlogIcon, key: 'blogs' },
   { name: 'Scholarships', icon: ScholarshipIcon, key: 'scholarships' },
   { name: 'Internships', icon: BriefcaseIcon, key: 'internships' },
-  { name: 'Chat', icon: MessageIcon, key: 'chat' },
+  { name: 'Support Inbox', icon: MessageIcon, key: 'chat' },
   { name: 'Newsletter', icon: MailIcon, key: 'newsletter' },
 ];
 
@@ -34,7 +34,7 @@ const AdminSidebar = ({ activeTab, setActiveTab, onLogout }) => (
         </div>
         <span className="text-lg font-bold">Admin Panel</span>
       </div>
-      <p className="text-xs text-gray-400">Scholarship Hub CMS</p>
+      <p className="text-xs text-gray-400">Scholarship Hub CMS and support inbox</p>
     </div>
 
     {/* MENU ITEMS(SIDEBAR) */}
@@ -73,15 +73,19 @@ const AdminSidebar = ({ activeTab, setActiveTab, onLogout }) => (
 );
 
 // STAT CARDS
-const StatCard = ({ icon: Icon, iconBg, label, value }) => (
-  <div className="bg-white rounded-xl border border-gray-200 p-5">
-    <div className={`w-[42px] h-[42px] rounded-lg flex items-center justify-center ${iconBg}`}>
-      <Icon />
+const StatCard = ({ icon, iconBg, label, value }) => {
+  const IconComponent = icon;
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-5">
+      <div className={`w-[42px] h-[42px] rounded-lg flex items-center justify-center ${iconBg}`}>
+        {IconComponent && <IconComponent />}
+      </div>
+      <p className="text-2xl font-bold text-gray-800 mt-3">{value?.toLocaleString() ?? 0}</p>
+      <p className="text-[13px] text-gray-500 mt-1">{label}</p>
     </div>
-    <p className="text-2xl font-bold text-gray-800 mt-3">{value?.toLocaleString() ?? 0}</p>
-    <p className="text-[13px] text-gray-500 mt-1">{label}</p>
-  </div>
-);
+  );
+};
 
 export const TableRow = ({ data, columns, onEdit, onDelete, onView }) => (
   <tr className="border-b border-gray-100 hover:bg-gray-50">
@@ -211,7 +215,7 @@ const Dashboard = ({ stats, loading, setActiveTab }) => {
 
 
 const AdminDashboardPage = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('chat');
   const [stats, setStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(false);
   const { logout } = useAuth();

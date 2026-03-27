@@ -70,12 +70,13 @@ const scholarshipService = {
    */
   update: async (id, data) => {
     if (!(data instanceof FormData)) {
-      data = new FormData();
+      const formData = new FormData();
       Object.entries(data).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
-          data.append(key, value);
+          formData.append(key, value);
         }
       });
+      data = formData;
     }
     return api.patch(`/api/scholarship/${id}`, data);
   },

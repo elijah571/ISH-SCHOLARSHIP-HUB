@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const ACCESS_TOKEN_STORAGE_KEY = 'ish_access_token';
 
 // ─── Axios instance ───
 const api = axios.create({
@@ -18,10 +19,21 @@ export const fetchCsrfToken = async () => {
 };
 
 // ─── Access token (kept in memory, never in localStorage) ───
-let accessToken = null;
+let accessToken =
+  typeof window !== 'undefined'
+    ? window.sessionStorage.getItem(ACCESS_TOKEN_STORAGE_KEY)
+    : null;
 
 export const setAccessToken = (token) => {
   accessToken = token;
+
+  if (typeof window !== 'undefined') {
+    if (token) {
+      window.sessionStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, token);
+    } else {
+      window.sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
+    }
+  }
 };
 
 export const getAccessToken = () => accessToken;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import chatService from '../services/chatService';
@@ -6,19 +6,12 @@ import { MessageIcon } from './icons/Icons';
 
 const FloatingChatButton = () => {
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isVisible, setIsVisible] = useState(true);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const location = useLocation();
+  const isAdmin = user?.role === 'admin';
+  const isVisible = location.pathname !== '/chat' && location.pathname !== '/user-dashboard';
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchUnreadCount();
-      const interval = setInterval(fetchUnreadCount, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [isAuthenticated]);
-
-  const fetchUnreadCount = async () => {
+  const fetchUnreadCount = useCallback(async () => {
     try {
       const response = await chatService.getUserConversations(1, 50);
       const conversations = response.data.data || [];
@@ -27,13 +20,22 @@ const FloatingChatButton = () => {
     } catch (err) {
       console.error('Failed to fetch unread count:', err);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    setIsVisible(location.pathname !== '/chat' && location.pathname !== '/dashboard');
-  }, [location.pathname]);
+    if (isAuthenticated && !isAdmin) {
+      const timerId = setTimeout(() => {
+        void fetchUnreadCount();
+      }, 0);
+      const interval = setInterval(fetchUnreadCount, 30000);
+      return () => {
+        clearTimeout(timerId);
+        clearInterval(interval);
+      };
+    }
+  }, [fetchUnreadCount, isAdmin, isAuthenticated]);
 
-  if (!isAuthenticated || !isVisible || unreadCount === 0) {
+  if (!isAuthenticated || isAdmin || !isVisible || unreadCount === 0) {
     return null;
   }
 

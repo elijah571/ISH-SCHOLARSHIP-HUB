@@ -1,5 +1,4 @@
 import React, { useState, useCallback } from 'react';
-import { toast } from 'react-toastify';
 import Modal from '../Modal';
 import Button from '../Button';
 import { getNames } from 'country-list';

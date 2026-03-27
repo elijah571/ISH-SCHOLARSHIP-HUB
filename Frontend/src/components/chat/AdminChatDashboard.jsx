@@ -10,7 +10,7 @@ import './AdminChatDashboard.css';
 
 export const AdminChatDashboard = () => {
   const { user } = useAuth();
-  const { authenticateSocket, isConnected } = useChat();
+  const { authenticateSocket, isConnected, latestConversationActivity } = useChat();
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -27,6 +27,17 @@ export const AdminChatDashboard = () => {
     // Load admin stats
     loadStats();
   }, [user, authenticateSocket]);
+
+  useEffect(() => {
+    if (user?.role !== 'admin' || !latestConversationActivity?.conversationId) {
+      return;
+    }
+
+    setSelectedConversation((currentConversationId) =>
+      currentConversationId || latestConversationActivity.conversationId
+    );
+    loadStats();
+  }, [latestConversationActivity, user]);
 
   const loadStats = async () => {
     try {
@@ -76,7 +87,11 @@ export const AdminChatDashboard = () => {
 
       <div className="dashboard-content">
         <div className="conversations-panel">
-          <ConversationList onSelectConversation={setSelectedConversation} adminMode={true} />
+          <ConversationList
+            onSelectConversation={setSelectedConversation}
+            selectedConversationId={selectedConversation}
+            adminMode={true}
+          />
         </div>
 
         <div className="chat-panel">

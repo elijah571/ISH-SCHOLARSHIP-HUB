@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useChat } from '../context/ChatContext';
 import Button from '../components/Button';
 import userService from '../services/userService';
-import { PlusIcon, MessageIcon, OverviewIcon, ApplicationIcon, BookmarkIcon, UserIcon, SettingsIcon, LogoutIcon, CubeIcon, GlobeIcon, CalendarIcon, ExternalLinkIcon, TrashIcon } from '../components/icons/Icons';
-import { ConversationList } from '../components/chat/ConversationList';
-import { ChatWindow } from '../components/chat/ChatWindow';
+import { getAccessToken } from '../services/api';
 import {
   PlusIcon,
+  MessageIcon,
   OverviewIcon,
   ApplicationIcon,
   BookmarkIcon,
@@ -20,12 +20,17 @@ import {
   ExternalLinkIcon,
   TrashIcon,
 } from '../components/icons/Icons';
-
+import { ConversationList } from '../components/chat/ConversationList';
+import { ChatWindow } from '../components/chat/ChatWindow';
 
 const LoadingSpinner = () => (
   <svg className="w-6 h-6 animate-spin text-blue-600" fill="none" viewBox="0 0 24 24">
     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+    <path
+      className="opacity-75"
+      fill="currentColor"
+      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+    />
   </svg>
 );
 
@@ -36,15 +41,13 @@ const Sidebar = ({ activeTab, onTabChange, onLogout }) => {
     { name: 'Saved Scholarships', icon: BookmarkIcon, tab: 'saved' },
     { name: 'Chat', icon: MessageIcon, tab: 'chat' },
     { name: 'My Profile', icon: UserIcon, tab: 'profile' },
-    { name: 'Settings', icon: SettingsIcon, tab: 'settings' }
+    { name: 'Settings', icon: SettingsIcon, tab: 'settings' },
   ];
 
   return (
     <aside className="w-[260px] bg-gray-50 border-r border-gray-200 p-6 flex flex-col">
       <div className="mb-6">
-        <p className="text-[11px] tracking-widest text-gray-400 font-semibold mb-2.5">
-          DASHBOARD
-        </p>
+        <p className="text-[11px] tracking-widest text-gray-400 font-semibold mb-2.5">DASHBOARD</p>
         {menuItems.slice(0, 3).map((item) => (
           <button
             key={item.name}
@@ -65,9 +68,7 @@ const Sidebar = ({ activeTab, onTabChange, onLogout }) => {
       </div>
 
       <div className="mb-6">
-        <p className="text-[11px] tracking-widest text-gray-400 font-semibold mb-2.5">
-          ACCOUNT
-        </p>
+        <p className="text-[11px] tracking-widest text-gray-400 font-semibold mb-2.5">ACCOUNT</p>
         {menuItems.slice(3).map((item) => (
           <button
             key={item.name}
@@ -100,26 +101,35 @@ const Sidebar = ({ activeTab, onTabChange, onLogout }) => {
   );
 };
 
-const StatCard = ({ icon: IconComponent, iconBg, label, value, subtitle }) => (
-  <div className="bg-white rounded-xl border border-gray-200 p-5 flex flex-col gap-2.5">
-    <div className={`w-[42px] h-[42px] rounded-lg flex items-center justify-center ${iconBg}`}>
-      <IconComponent />
-    </div>
-    <p className="text-[13px] text-gray-500">{label}</p>
-    <p className="text-[26px] font-bold text-gray-800">{value}</p>
-    {subtitle && (
-      <p className="text-[12px] text-gray-400">{subtitle}</p>
-    )}
-  </div>
-);
+const StatCard = ({ icon, iconBg, label, value, subtitle }) => {
+  const IconComponent = icon;
 
-const ScholarshipCard = ({ scholarship, onUnsave, onApply, showApply = true, showUnsave = false, appliedAt = null }) => {
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-5 flex flex-col gap-2.5">
+      <div className={`w-[42px] h-[42px] rounded-lg flex items-center justify-center ${iconBg}`}>
+        {IconComponent && <IconComponent />}
+      </div>
+      <p className="text-[13px] text-gray-500">{label}</p>
+      <p className="text-[26px] font-bold text-gray-800">{value}</p>
+      {subtitle && <p className="text-[12px] text-gray-400">{subtitle}</p>}
+    </div>
+  );
+};
+
+const ScholarshipCard = ({
+  scholarship,
+  onUnsave,
+  onApply,
+  showApply = true,
+  showUnsave = false,
+  appliedAt = null,
+}) => {
   const formatDate = (date) => {
     if (!date) return 'N/A';
     return new Date(date).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
     });
   };
 
@@ -139,12 +149,10 @@ const ScholarshipCard = ({ scholarship, onUnsave, onApply, showApply = true, sho
             <CubeIcon />
           </div>
         )}
-        
+
         <div className="flex-1 min-w-0">
-          <h4 className="text-[15px] font-semibold text-gray-800 truncate">
-            {scholarship.title}
-          </h4>
-          
+          <h4 className="text-[15px] font-semibold text-gray-800 truncate">{scholarship.title}</h4>
+
           <div className="flex items-center gap-4 mt-1.5 text-[13px] text-gray-500">
             <span className="flex items-center gap-1">
               <GlobeIcon />
@@ -157,9 +165,7 @@ const ScholarshipCard = ({ scholarship, onUnsave, onApply, showApply = true, sho
           </div>
 
           {appliedAt && (
-            <p className="text-[12px] text-green-600 mt-1">
-              Applied on {formatDate(appliedAt)}
-            </p>
+            <p className="text-[12px] text-green-600 mt-1">Applied on {formatDate(appliedAt)}</p>
           )}
 
           {scholarship.funding_type && (
@@ -188,7 +194,7 @@ const ScholarshipCard = ({ scholarship, onUnsave, onApply, showApply = true, sho
             {isDeadlinePassed ? 'Expired' : 'Apply Now'}
           </a>
         )}
-        
+
         {showUnsave && (
           <button
             onClick={() => onUnsave?.(scholarship._id)}
@@ -212,10 +218,11 @@ const ScholarshipCard = ({ scholarship, onUnsave, onApply, showApply = true, sho
 
 const DashboardPage = () => {
   const { logout, user } = useAuth();
+  const { authenticateSocket } = useChat();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedConversation, setSelectedConversation] = useState(null);
-  
+
   // Data state
   const [savedScholarships, setSavedScholarships] = useState([]);
   const [appliedScholarships, setAppliedScholarships] = useState([]);
@@ -223,14 +230,20 @@ const DashboardPage = () => {
 
   // Fetch data on mount
   useEffect(() => {
+    if (user?.role === 'admin') {
+      navigate('/admin', { replace: true });
+    }
+  }, [navigate, user]);
+
+  useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         const [savedRes, appliedRes] = await Promise.all([
           userService.getSavedScholarships(),
-          userService.getAppliedScholarships()
+          userService.getAppliedScholarships(),
         ]);
-        
+
         setSavedScholarships(savedRes.data.data || []);
         setAppliedScholarships(appliedRes.data.data || []);
       } catch (error) {
@@ -241,7 +254,18 @@ const DashboardPage = () => {
     };
 
     fetchData();
-  }, []);
+  }, [user]);
+
+  useEffect(() => {
+    if (activeTab !== 'chat') {
+      return;
+    }
+
+    const token = getAccessToken();
+    if (token) {
+      authenticateSocket(token);
+    }
+  }, [activeTab, authenticateSocket]);
 
   const handleLogout = async () => {
     await logout();
@@ -251,7 +275,7 @@ const DashboardPage = () => {
   const handleUnsave = async (scholarshipId) => {
     try {
       await userService.unsaveScholarship(scholarshipId);
-      setSavedScholarships(prev => prev.filter(s => s._id !== scholarshipId));
+      setSavedScholarships((prev) => prev.filter((s) => s._id !== scholarshipId));
     } catch (error) {
       console.error('Failed to unsave:', error);
     }
@@ -260,14 +284,17 @@ const DashboardPage = () => {
   const handleApply = async (scholarshipId) => {
     try {
       await userService.markAsApplied(scholarshipId);
-      const scholarship = savedScholarships.find(s => s._id === scholarshipId);
+      const scholarship = savedScholarships.find((s) => s._id === scholarshipId);
       if (scholarship) {
-        setSavedScholarships(prev => prev.filter(s => s._id !== scholarshipId));
-        setAppliedScholarships(prev => [{
-          scholarship,
-          appliedAt: new Date().toISOString(),
-          _id: Date.now().toString()
-        }, ...prev]);
+        setSavedScholarships((prev) => prev.filter((s) => s._id !== scholarshipId));
+        setAppliedScholarships((prev) => [
+          {
+            scholarship,
+            appliedAt: new Date().toISOString(),
+            _id: Date.now().toString(),
+          },
+          ...prev,
+        ]);
       }
     } catch (error) {
       console.error('Failed to mark as applied:', error);
@@ -318,9 +345,7 @@ const DashboardPage = () => {
             {appliedScholarships.length > 0 ? (
               <div className="bg-white rounded-xl border border-gray-200 p-5 mb-7">
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-[18px] font-semibold text-gray-800">
-                    My Applications
-                  </h2>
+                  <h2 className="text-[18px] font-semibold text-gray-800">My Applications</h2>
                   <button
                     onClick={() => setActiveTab('applied')}
                     className="text-[14px] text-blue-600 hover:underline"
@@ -352,18 +377,14 @@ const DashboardPage = () => {
                 <p className="text-[14px] text-gray-500 mb-4">
                   Start exploring scholarships and apply to your dream programs.
                 </p>
-                <Button onClick={() => navigate('/scholarships')}>
-                  Browse Scholarships
-                </Button>
+                <Button onClick={() => navigate('/scholarships')}>Browse Scholarships</Button>
               </div>
             )}
 
             {savedScholarships.length > 0 ? (
               <div className="bg-white rounded-xl border border-gray-200 p-5 mb-7">
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-[18px] font-semibold text-gray-800">
-                    Saved Scholarships
-                  </h2>
+                  <h2 className="text-[18px] font-semibold text-gray-800">Saved Scholarships</h2>
                   <button
                     onClick={() => setActiveTab('saved')}
                     className="text-[14px] text-blue-600 hover:underline"
@@ -395,9 +416,7 @@ const DashboardPage = () => {
                 <p className="text-[14px] text-gray-500 mb-4">
                   Save scholarships you're interested in to apply later.
                 </p>
-                <Button onClick={() => navigate('/scholarships')}>
-                  Find Scholarships
-                </Button>
+                <Button onClick={() => navigate('/scholarships')}>Find Scholarships</Button>
               </div>
             )}
           </>
@@ -436,9 +455,7 @@ const DashboardPage = () => {
                 <p className="text-[14px] text-gray-500 mb-4">
                   Start applying to scholarships you're interested in.
                 </p>
-                <Button onClick={() => navigate('/scholarships')}>
-                  Browse Scholarships
-                </Button>
+                <Button onClick={() => navigate('/scholarships')}>Browse Scholarships</Button>
               </div>
             )}
           </div>
@@ -477,9 +494,7 @@ const DashboardPage = () => {
                 <p className="text-[14px] text-gray-500 mb-4">
                   Save scholarships you're interested in to apply later.
                 </p>
-                <Button onClick={() => navigate('/scholarships')}>
-                  Find Scholarships
-                </Button>
+                <Button onClick={() => navigate('/scholarships')}>Find Scholarships</Button>
               </div>
             )}
           </div>
@@ -487,12 +502,16 @@ const DashboardPage = () => {
 
       case 'chat':
         return (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden" style={{ height: 'calc(100vh - 200px)' }}>
+          <div
+            className="bg-white rounded-xl border border-gray-200 overflow-hidden"
+            style={{ height: 'calc(100vh - 200px)' }}
+          >
             <div className="flex h-full">
               <div className="w-80 border-r border-gray-200">
-                <ConversationList 
-                  onSelectConversation={setSelectedConversation} 
-                  adminMode={false} 
+                <ConversationList
+                  onSelectConversation={setSelectedConversation}
+                  selectedConversationId={selectedConversation}
+                  adminMode={false}
                 />
               </div>
               <div className="flex-1">
@@ -514,9 +533,7 @@ const DashboardPage = () => {
       case 'profile':
         return (
           <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 className="text-[18px] font-semibold text-gray-800 mb-6">
-              My Profile
-            </h2>
+            <h2 className="text-[18px] font-semibold text-gray-800 mb-6">My Profile</h2>
             <div className="space-y-4">
               <div className="flex items-center gap-4 pb-4 border-b border-gray-100">
                 <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center">
@@ -534,15 +551,11 @@ const DashboardPage = () => {
 
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <p className="text-[12px] text-gray-400 uppercase tracking-wide mb-1">
-                    Email
-                  </p>
+                  <p className="text-[12px] text-gray-400 uppercase tracking-wide mb-1">Email</p>
                   <p className="text-[14px] text-gray-800">{user?.email}</p>
                 </div>
                 <div>
-                  <p className="text-[12px] text-gray-400 uppercase tracking-wide mb-1">
-                    Role
-                  </p>
+                  <p className="text-[12px] text-gray-400 uppercase tracking-wide mb-1">Role</p>
                   <p className="text-[14px] text-gray-800 capitalize">{user?.role || 'User'}</p>
                 </div>
                 <div>
@@ -565,12 +578,8 @@ const DashboardPage = () => {
       case 'settings':
         return (
           <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 className="text-[18px] font-semibold text-gray-800 mb-6">
-              Settings
-            </h2>
-            <p className="text-[14px] text-gray-500">
-              Settings panel coming soon...
-            </p>
+            <h2 className="text-[18px] font-semibold text-gray-800 mb-6">Settings</h2>
+            <p className="text-[14px] text-gray-500">Settings panel coming soon...</p>
           </div>
         );
 
@@ -581,22 +590,17 @@ const DashboardPage = () => {
 
   return (
     <div className="h-screen grid grid-cols-[260px_1fr]">
-      <Sidebar
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        onLogout={handleLogout}
-      />
+      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} onLogout={handleLogout} />
 
       <main className="bg-gray-100 p-8 overflow-y-auto">
         <div className="flex justify-between items-center mb-7">
           <div>
-            <h1 className="text-[30px] font-bold text-gray-800">
-              Welcome back, {getFirstName()}!
-            </h1>
+            <h1 className="text-[30px] font-bold text-gray-800">Welcome back, {getFirstName()}!</h1>
             <p className="text-[15px] text-gray-500 mt-1">
-              {activeTab === 'overview' && "Here's what's happening with your scholarship applications today."}
+              {activeTab === 'overview' &&
+                "Here's what's happening with your scholarship applications today."}
               {activeTab === 'applied' && 'Track all your scholarship applications.'}
-              {activeTab === 'saved' && 'Scholarships you\'ve saved for later.'}
+              {activeTab === 'saved' && "Scholarships you've saved for later."}
               {activeTab === 'profile' && 'Manage your account details.'}
               {activeTab === 'settings' && 'Customize your preferences.'}
               {activeTab === 'chat' && 'Chat with support.'}

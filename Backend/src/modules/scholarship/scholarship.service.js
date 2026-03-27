@@ -28,8 +28,6 @@ export const createScholarshipService = async ({
     funding_type,
     link: link || undefined,
     duration: duration || undefined,
-    link,
-    duration,
     image: uploadedImage
       ? {
           url: uploadedImage.secure_url,
