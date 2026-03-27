@@ -16,6 +16,8 @@ import AdminDashboardPage from "./pages/AdminDashboardPage";
 import BlogPage from "./pages/BlogPage";
 import BlogDetailsPage from "./pages/BlogDetailsPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { ChatPage } from "./pages/ChatPage";
+import FloatingChatButton from "./components/FloatingChatButton";
 
 export default function App() {
   return (
@@ -33,6 +35,14 @@ export default function App() {
       <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+      <Route
+        path="/chat"
+        element={
+          <ProtectedRoute>
+            <ChatPage />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/user-dashboard"
         element={
@@ -62,6 +72,7 @@ export default function App() {
       pauseOnHover
       theme="light"
     />
+    <FloatingChatButton />
     </>
   );
 }

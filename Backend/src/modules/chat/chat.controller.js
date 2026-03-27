@@ -14,17 +14,24 @@ import {
 } from './chat.service.js';
 import { asyncHandler } from '../../middleware/asyncHandler.js';
 import { AppError } from '../../utils/AppError.js';
+import { User } from '../../models/user.model.js';
 
 // Create or get conversation
 export const createOrGetConversationCtrl = asyncHandler(async (req, res) => {
   const { adminId, subject } = req.body;
   const userId = req.user._id;
 
-  if (!adminId) {
-    throw new AppError('Admin ID is required', 400);
+  let assignedAdminId = adminId;
+
+  if (!assignedAdminId) {
+    const admin = await User.findOne({ role: 'admin' }).select('_id');
+    if (!admin) {
+      throw new AppError('No admin available to handle your request', 400);
+    }
+    assignedAdminId = admin._id;
   }
 
-  const conversation = await createOrGetConversation(userId, adminId, subject);
+  const conversation = await createOrGetConversation(userId, assignedAdminId, subject);
 
   res.status(200).json({
     success: true,

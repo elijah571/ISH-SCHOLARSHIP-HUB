@@ -5,11 +5,12 @@ import api from '../services/api';
 import Button from '../components/Button';
 import Loader from '../components/Loader';
 import UsersTab from '../components/admin/UsersTab';
-import { BlogIcon, BriefcaseIcon, DashboardIcon, EditIcon, EyeIcon, LogoutIcon, MailIcon, PlusIcon, ScholarshipIcon, TrashIcon, UsersIcon } from '../components/icons/Icons';
+import { BlogIcon, BriefcaseIcon, DashboardIcon, EditIcon, EyeIcon, LogoutIcon, MailIcon, MessageIcon, PlusIcon, ScholarshipIcon, TrashIcon, UsersIcon } from '../components/icons/Icons';
 import { BlogsTab } from '../components/admin/BlogsTab';
 import { ScholarshipsTab } from '../components/admin/ScholarshipsTab';
 import { InternshipsTab } from '../components/admin/InternshipsTab';
 import { NewsletterTab } from '../components/admin/NewsletterTab';
+import { AdminChatDashboard } from '../components/chat/AdminChatDashboard';
 
 
 const menuItems = [
@@ -18,6 +19,7 @@ const menuItems = [
   { name: 'Blog Posts', icon: BlogIcon, key: 'blogs' },
   { name: 'Scholarships', icon: ScholarshipIcon, key: 'scholarships' },
   { name: 'Internships', icon: BriefcaseIcon, key: 'internships' },
+  { name: 'Chat', icon: MessageIcon, key: 'chat' },
   { name: 'Newsletter', icon: MailIcon, key: 'newsletter' },
 ];
 
@@ -246,6 +248,7 @@ const AdminDashboardPage = () => {
       case 'scholarships': return <ScholarshipsTab />;
       case 'internships': return <InternshipsTab />;
       case 'newsletter': return <NewsletterTab />;
+      case 'chat': return <AdminChatDashboard />;
       default: return <Dashboard stats={stats} loading={statsLoading} />;
     }
   };

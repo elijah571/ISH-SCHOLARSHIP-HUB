@@ -86,6 +86,26 @@ export const initializeChatSocket = (io) => {
       }
     });
 
+    // Leave conversation room
+    socket.on('leave_conversation', (conversationId) => {
+      try {
+        if (!socket.userId) return;
+        socket.leave(`conversation_${conversationId}`);
+        if (socket.conversationId === conversationId) {
+          socket.conversationId = null;
+        }
+
+        socket.to(`conversation_${conversationId}`).emit('user_left', {
+          userId: socket.userId,
+          userName: socket.userName,
+        });
+
+        logger.info(`User ${socket.userId} left conversation ${conversationId}`);
+      } catch (error) {
+        logger.error('Error leaving conversation:', error);
+      }
+    });
+
     // Send message
     socket.on('send_message', async (data) => {
       try {

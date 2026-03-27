@@ -1,58 +1,55 @@
-// src/components/chat/ChatWindow.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useChat } from '../../context/ChatContext';
 import chatService from '../../services/chatService';
 import './ChatWindow.css';
 
 export const ChatWindow = ({ conversationId, adminMode = false }) => {
-  const {
-    messages,
-    setMessages,
-    sendMessage,
-    editMessage,
-    deleteMessage,
-    markAsRead,
-    notifyTyping,
-    notifyStopTyping,
-    onlineUsers,
-    typingUsers,
-  } = useChat();
-
+  const chat = useChat();
   const [messageText, setMessageText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState(null);
-  const [editText, setEditText] = useState('');
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
-  // Load messages when conversation changes
   useEffect(() => {
     if (!conversationId) return;
+
+    let cancelled = false;
 
     const loadMessages = async () => {
       try {
         setIsLoading(true);
+        chat.clearMessages();
         const response = await chatService.getMessages(conversationId);
-        setMessages(response.data.data);
-        markAsRead(conversationId);
+        if (!cancelled) {
+          chat.setMessages(response.data.data || []);
+          chat.joinConversation(conversationId);
+          chat.markAsRead(conversationId);
+        }
       } catch (error) {
-        console.error('Error loading messages:', error);
+        if (!cancelled) {
+          console.error('Error loading messages:', error);
+        }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     };
 
     loadMessages();
-  }, [conversationId, setMessages, markAsRead]);
 
-  // Scroll to bottom when messages change
+    return () => {
+      cancelled = true;
+      if (conversationId) {
+        chat.leaveConversation(conversationId);
+      }
+    };
+  }, [conversationId]);
+
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  }, [chat.messages]);
 
   const handleSendMessage = (e) => {
     e.preventDefault();
@@ -60,50 +57,43 @@ export const ChatWindow = ({ conversationId, adminMode = false }) => {
     if (!messageText.trim()) return;
 
     if (editingMessageId) {
-      // Edit existing message
-      editMessage(editingMessageId, messageText);
+      chat.editMessage(editingMessageId, messageText);
       setEditingMessageId(null);
     } else {
-      // Send new message
-      sendMessage(conversationId, messageText);
+      chat.sendMessage(conversationId, messageText);
     }
 
     setMessageText('');
-    notifyStopTyping(conversationId);
+    chat.notifyStopTyping(conversationId);
   };
 
   const handleInputChange = (e) => {
     setMessageText(e.target.value);
 
-    // Notify typing
-    notifyTyping(conversationId);
+    chat.notifyTyping(conversationId);
 
-    // Clear previous timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
 
-    // Set new timeout to notify stop typing
     typingTimeoutRef.current = setTimeout(() => {
-      notifyStopTyping(conversationId);
+      chat.notifyStopTyping(conversationId);
     }, 3000);
   };
 
   const handleEditMessage = (message) => {
     setEditingMessageId(message._id);
-    setEditText(message.message);
     setMessageText(message.message);
   };
 
   const handleDeleteMessage = (messageId) => {
     if (window.confirm('Are you sure you want to delete this message?')) {
-      deleteMessage(messageId, conversationId);
+      chat.deleteMessage(messageId, conversationId);
     }
   };
 
   const cancelEdit = () => {
     setEditingMessageId(null);
-    setEditText('');
     setMessageText('');
   };
 
@@ -112,47 +102,66 @@ export const ChatWindow = ({ conversationId, adminMode = false }) => {
       <div className="chat-messages">
         {isLoading ? (
           <div className="loading">Loading messages...</div>
-        ) : messages.length === 0 ? (
+        ) : chat.messages.length === 0 ? (
           <div className="no-messages">No messages yet. Start a conversation!</div>
         ) : (
-          messages.map((msg) => (
+          chat.messages.map((msg) => (
             <div
               key={msg._id}
               className={`message ${msg.senderRole === 'admin' ? 'admin' : 'user'}`}
             >
               <div className="message-header">
-                <span className="sender-name">{msg.sender.fullName}</span>
-                <span className="message-time">{new Date(msg.createdAt).toLocaleTimeString()}</span>
+                <span className="sender-name">
+                  {msg.sender?.fullName || 'Unknown'}
+                </span>
+                <span className="message-time">
+                  {new Date(msg.createdAt).toLocaleTimeString()}
+                </span>
               </div>
-              <div className="message-content">{msg.message}</div>
-              {msg.editedAt && <div className="edited-label">(edited)</div>}
+              <div className="message-content">
+                {msg.isDeleted ? '(Message deleted)' : msg.message}
+              </div>
+              {msg.editedAt && !msg.isDeleted && (
+                <div className="edited-label">(edited)</div>
+              )}
               {msg.attachments && msg.attachments.length > 0 && (
                 <div className="attachments">
                   {msg.attachments.map((att, idx) => (
-                    <a key={idx} href={att.url} target="_blank" rel="noopener noreferrer">
-                      📎 {att.name}
+                    <a
+                      key={idx}
+                      href={att.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {att.name}
                     </a>
                   ))}
                 </div>
               )}
-              {!adminMode && (
+              {!adminMode && !msg.isDeleted && (
                 <div className="message-actions">
-                  <button onClick={() => handleEditMessage(msg)} title="Edit message">
-                    ✏️
+                  <button
+                    onClick={() => handleEditMessage(msg)}
+                    title="Edit message"
+                  >
+                    Edit
                   </button>
-                  <button onClick={() => handleDeleteMessage(msg._id)} title="Delete message">
-                    🗑️
+                  <button
+                    onClick={() => handleDeleteMessage(msg._id)}
+                    title="Delete message"
+                  >
+                    Delete
                   </button>
                 </div>
               )}
-              {msg.isRead && <div className="read-indicator">✓ Read</div>}
+              {msg.isRead && <div className="read-indicator">Read</div>}
             </div>
           ))
         )}
 
-        {typingUsers.length > 0 && (
+        {chat.typingUsers.length > 0 && (
           <div className="typing-indicator">
-            {typingUsers.map((user) => (
+            {chat.typingUsers.map((user) => (
               <span key={user.userId}>{user.userName} is typing...</span>
             ))}
           </div>
@@ -162,9 +171,14 @@ export const ChatWindow = ({ conversationId, adminMode = false }) => {
       </div>
 
       <div className="online-users">
-        {onlineUsers.map((user) => (
+        {chat.onlineUsers.length > 0 && (
+          <span className="online-count">
+            {chat.onlineUsers.length} online
+          </span>
+        )}
+        {chat.onlineUsers.map((user) => (
           <span key={user.userId} className="online-user">
-            🟢 {user.userName}
+            {user.userName}
           </span>
         ))}
       </div>
@@ -186,7 +200,11 @@ export const ChatWindow = ({ conversationId, adminMode = false }) => {
             placeholder="Type a message..."
             className="chat-input"
           />
-          <button type="submit" className="send-btn" disabled={!messageText.trim()}>
+          <button
+            type="submit"
+            className="send-btn"
+            disabled={!messageText.trim()}
+          >
             Send
           </button>
         </div>

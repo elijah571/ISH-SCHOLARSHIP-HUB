@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useChat } from '../../context/ChatContext';
 import chatService from '../../services/chatService';
+import { getAccessToken } from '../../services/api';
 import { ChatWindow } from './ChatWindow';
 import { ConversationList } from './ConversationList';
 import './AdminChatDashboard.css';
@@ -18,7 +19,7 @@ export const AdminChatDashboard = () => {
     if (!user) return;
 
     // Authenticate socket with user token
-    const token = localStorage.getItem('accessToken');
+    const token = getAccessToken();
     if (token) {
       authenticateSocket(token);
     }
