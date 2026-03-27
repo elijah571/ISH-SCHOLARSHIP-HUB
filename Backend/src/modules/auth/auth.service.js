@@ -91,8 +91,11 @@ export const verifyEmailService = async (token) => {
 /* ================= LOGIN ================= */
 export const loginUserService = async (req) => {
   const { email, password } = req.body;
+  const normalizedEmail = String(email || '')
+    .trim()
+    .toLowerCase();
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email: normalizedEmail });
   if (!user || !(await user.comparePassword(password))) {
     throw new AppError('Invalid credentials', 401);
   }

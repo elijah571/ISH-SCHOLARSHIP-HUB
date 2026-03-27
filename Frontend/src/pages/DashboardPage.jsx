@@ -6,6 +6,20 @@ import userService from '../services/userService';
 import { PlusIcon, MessageIcon, OverviewIcon, ApplicationIcon, BookmarkIcon, UserIcon, SettingsIcon, LogoutIcon, CubeIcon, GlobeIcon, CalendarIcon, ExternalLinkIcon, TrashIcon } from '../components/icons/Icons';
 import { ConversationList } from '../components/chat/ConversationList';
 import { ChatWindow } from '../components/chat/ChatWindow';
+import {
+  PlusIcon,
+  OverviewIcon,
+  ApplicationIcon,
+  BookmarkIcon,
+  UserIcon,
+  SettingsIcon,
+  LogoutIcon,
+  CubeIcon,
+  GlobeIcon,
+  CalendarIcon,
+  ExternalLinkIcon,
+  TrashIcon,
+} from '../components/icons/Icons';
 
 
 const LoadingSpinner = () => (

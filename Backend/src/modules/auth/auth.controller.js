@@ -9,7 +9,7 @@ import {
 } from './auth.service.js';
 import { Scholarship } from '../../models/scholarship.js';
 
-import { validateRegistration } from './auth.validation.js';
+import { validateRegistration, validateLogin } from './auth.validation.js';
 import { asyncHandler } from '../../middleware/asyncHandler.js';
 import { AppError } from '../../utils/AppError.js';
 import { logger } from '../../utils/logger.js';
@@ -18,13 +18,13 @@ import { logger } from '../../utils/logger.js';
 const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax',
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   path: '/',
 };
 
 const REFRESH_COOKIE_OPTIONS = {
   ...COOKIE_OPTIONS,
-  path: '/api/auth/refresh',
+  path: '/',
 };
 
 /* ================= REGISTER ================= */
@@ -65,6 +65,11 @@ export const verifyEmail = asyncHandler(async (req, res) => {
 
 /* ================= LOGIN ================= */
 export const loginUser = asyncHandler(async (req, res) => {
+  const { error } = validateLogin(req.body);
+  if (error) {
+    throw new AppError(error.details[0].message, 400);
+  }
+
   const { accessToken, refreshToken, user } = await loginUserService(req);
 
   res
@@ -132,7 +137,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
 /* ================= LOGOUT (SINGLE SESSION) ================= */
 export const logout = asyncHandler(async (req, res) => {
   const token = req.cookies.refreshToken;
-  
+
   if (token) {
     await logoutService(req.user._id, token);
   }
@@ -188,7 +193,7 @@ export const unsaveScholarship = asyncHandler(async (req, res) => {
   const savedId = user.savedScholarships.find(
     (s) => s._id?.toString() === scholarshipId || s.toString() === scholarshipId
   );
-  
+
   if (!savedId) {
     throw new AppError('Scholarship not in saved list', 400);
   }
@@ -234,7 +239,7 @@ export const markAsApplied = asyncHandler(async (req, res) => {
 export const getSavedScholarships = asyncHandler(async (req, res) => {
   const user = await req.user.populate({
     path: 'savedScholarships',
-    model: 'Scholarship'
+    model: 'Scholarship',
   });
 
   res.status(200).json({
@@ -247,7 +252,7 @@ export const getSavedScholarships = asyncHandler(async (req, res) => {
 export const getAppliedScholarships = asyncHandler(async (req, res) => {
   const user = await req.user.populate({
     path: 'appliedScholarships.scholarship',
-    model: 'Scholarship'
+    model: 'Scholarship',
   });
 
   res.status(200).json({
