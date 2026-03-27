@@ -3,32 +3,18 @@ import Button from '../Button';
 
 const InternshipFiltersSidebar = ({ filters, onFilterChange, onResetFilters }) => {
   const locations = [
-    { id: 'all', label: 'All Locations' },
-    { id: 'remote', label: 'Remote' },
-    { id: 'us', label: 'United States' },
-    { id: 'europe', label: 'Europe' },
-    { id: 'asia', label: 'Asia Pacific' }
-  ];
-
-  const durations = [
-    { id: 'all', label: 'Any Duration' },
-    { id: 'short', label: 'Under 3 months' },
-    { id: 'medium', label: '3-6 months' },
-    { id: 'long', label: '6+ months' }
+    { id: '', label: 'All Locations' },
+    { id: 'Remote', label: 'Remote' },
+    { id: 'United States', label: 'United States' },
+    { id: 'Europe', label: 'Europe' },
+    { id: 'Asia', label: 'Asia' }
   ];
 
   const types = [
-    { id: 'paid', label: 'Paid' },
-    { id: 'stipend', label: 'Stipend' },
-    { id: 'unpaid', label: 'Unpaid' }
-  ];
-
-  const industries = [
-    { id: 'tech', label: 'Technology' },
-    { id: 'finance', label: 'Finance' },
-    { id: 'healthcare', label: 'Healthcare' },
-    { id: 'marketing', label: 'Marketing' },
-    { id: 'research', label: 'Research' }
+    { id: '', label: 'All Types' },
+    { id: 'Paid', label: 'Paid' },
+    { id: 'Stipend', label: 'Stipend' },
+    { id: 'Unpaid', label: 'Unpaid' }
   ];
 
   return (
@@ -63,25 +49,6 @@ const InternshipFiltersSidebar = ({ filters, onFilterChange, onResetFilters }) =
       </div>
 
       <div className="mb-6">
-        <h4 className="text-sm font-medium text-gray-700 mb-3">Duration</h4>
-        <div className="space-y-3">
-          {durations.map((duration) => (
-            <label key={duration.id} className="flex items-center cursor-pointer">
-              <input
-                type="radio"
-                name="duration"
-                value={duration.id}
-                checked={filters.duration === duration.id}
-                onChange={(e) => onFilterChange('duration', e.target.value)}
-                className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-              />
-              <span className="ml-2 text-sm text-gray-700">{duration.label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <div className="mb-6">
         <h4 className="text-sm font-medium text-gray-700 mb-3">Type</h4>
         <div className="space-y-3">
           {types.map((type) => (
@@ -99,29 +66,6 @@ const InternshipFiltersSidebar = ({ filters, onFilterChange, onResetFilters }) =
           ))}
         </div>
       </div>
-
-      <div className="mb-6">
-        <h4 className="text-sm font-medium text-gray-700 mb-3">Industry</h4>
-        <div className="space-y-3">
-          {industries.map((industry) => (
-            <label key={industry.id} className="flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                name="industry"
-                value={industry.id}
-                checked={filters.industry === industry.id}
-                onChange={(e) => onFilterChange('industry', e.target.value)}
-                className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 rounded"
-              />
-              <span className="ml-2 text-sm text-gray-700">{industry.label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <Button variant="outline" className="w-full mb-4">
-        Show More Filters
-      </Button>
 
       <div className="bg-emerald-50 rounded-xl p-4">
         <h4 className="font-semibold text-gray-900 mb-2">

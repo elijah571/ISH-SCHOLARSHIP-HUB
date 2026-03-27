@@ -1,14 +1,14 @@
 import React from 'react';
 import { Input, Select } from '../Input';
+import Loader from '../Loader';
 
-const InternshipPageHeader = ({ search, setSearch, sortBy, setSortBy }) => {
+const InternshipPageHeader = ({ search, setSearch, sortBy, setSortBy, showResultCount, resultCount, loading }) => {
   const sortOptions = [
     { value: 'newest', label: 'Newest First' },
     { value: 'deadline', label: 'Deadline Soon' },
-    { value: 'duration', label: 'Shortest Duration' },
     { value: 'name', label: 'Alphabetical' }
   ];
-  
+
   return (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
@@ -16,16 +16,25 @@ const InternshipPageHeader = ({ search, setSearch, sortBy, setSortBy }) => {
           Internship Opportunities
         </h1>
         <p className="text-gray-600 mt-2">
-          Discover 1,850+ internship positions from top companies worldwide.
+          {loading ? (
+            <span className="flex items-center gap-2">
+              <Loader size="sm" />
+              Loading...
+            </span>
+          ) : showResultCount ? (
+            `Discover ${resultCount?.toLocaleString() || 0}+ internship positions from top companies worldwide.`
+          ) : (
+            'Discover internship positions from top companies worldwide.'
+          )}
         </p>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative">
-          <svg 
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" 
-            fill="none" 
-            stroke="currentColor" 
+          <svg
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+            fill="none"
+            stroke="currentColor"
             viewBox="0 0 24 24"
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />

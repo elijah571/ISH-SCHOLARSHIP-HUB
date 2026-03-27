@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'react-toastify';
 import Modal from '../Modal';
 import api from '../../services/api';
 
@@ -27,7 +28,9 @@ const DeleteConfirmModal = ({ isOpen, onClose, item, onSuccess, itemType = 'item
       onSuccess();
       onClose();
     } catch (err) {
-      setError(err.response?.data?.message || `Failed to delete ${itemType}`);
+      const errorMsg = err.response?.data?.message || `Failed to delete ${itemType}`;
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }

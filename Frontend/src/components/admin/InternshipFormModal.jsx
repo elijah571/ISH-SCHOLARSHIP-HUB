@@ -1,6 +1,8 @@
 import React, { useState, useCallback } from 'react';
+import { toast } from 'react-toastify';
 import Modal from '../Modal';
 import Button from '../Button';
+import { getNames } from 'country-list';
 
 const EMPTY_FORM = {
   title: '',
@@ -11,8 +13,12 @@ const EMPTY_FORM = {
   type: '',
   startDate: '',
   endDate: '',
+  link: '',
   imageUrl: '',
 };
+
+// get all countries
+const countries = getNames();
 
 const getInitialFormData = (internship) => {
   if (!internship) return EMPTY_FORM;
@@ -25,6 +31,7 @@ const getInitialFormData = (internship) => {
     type: internship.type || '',
     startDate: internship.startDate ? internship.startDate.split('T')[0] : '',
     endDate: internship.endDate ? internship.endDate.split('T')[0] : '',
+    link: internship.link || '',
     imageUrl: internship.image?.url || '',
   };
 };
@@ -84,6 +91,7 @@ const InternshipFormModal = ({ isOpen, onClose, onSubmit, internship, loading })
     if (!formData.type) newErrors.type = 'Type is required';
     if (!formData.startDate) newErrors.startDate = 'Start date is required';
     if (!formData.endDate) newErrors.endDate = 'End date is required';
+    if (!formData.link.trim()) newErrors.link = 'Application link is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -101,6 +109,7 @@ const InternshipFormModal = ({ isOpen, onClose, onSubmit, internship, loading })
     data.append('type', formData.type);
     data.append('startDate', formData.startDate);
     data.append('endDate', formData.endDate);
+    if (formData.link) data.append('link', formData.link.trim());
     if (imageFile) {
       data.append('image', imageFile);
     }
@@ -174,16 +183,23 @@ const InternshipFormModal = ({ isOpen, onClose, onSubmit, internship, loading })
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Country <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
-              name="country"
-              value={formData.country}
-              onChange={handleChange}
-              placeholder="e.g., United States"
-              className={`w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
-                errors.country ? 'border-red-500' : 'border-gray-200'
-              }`}
-            />
+            
+            <select 
+            name="country" 
+            id="country" 
+            value={formData.country} 
+            onChange={handleChange}
+            className={`w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
+              errors.country ? 'border-red-500' : 'border-gray-200'
+            }`}
+            >
+              <option value="">Select Country</option>
+              {countries.map((country) => (
+                <option key={country} value={country}>
+                  {country}
+                </option>
+              ))}
+            </select>
             {errors.country && <p className="mt-1 text-sm text-red-600">{errors.country}</p>}
           </div>
 
@@ -256,6 +272,23 @@ const InternshipFormModal = ({ isOpen, onClose, onSubmit, internship, loading })
             />
             {errors.endDate && <p className="mt-1 text-sm text-red-600">{errors.endDate}</p>}
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Application Link <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="url"
+            name="link"
+            value={formData.link}
+            onChange={handleChange}
+            placeholder="https://example.com/apply"
+            className={`w-full px-3 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
+              errors.link ? 'border-red-500' : 'border-gray-200'
+            }`}
+          />
+          {errors.link && <p className="mt-1 text-sm text-red-600">{errors.link}</p>}
         </div>
 
         <div>

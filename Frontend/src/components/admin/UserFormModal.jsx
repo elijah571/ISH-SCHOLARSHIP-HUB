@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import Modal from '../Modal';
 import api from '../../services/api';
 
@@ -78,7 +79,9 @@ const UserFormModal = ({ isOpen, onClose, onSuccess, user = null }) => {
       onSuccess();
       onClose();
     } catch (err) {
-      setError(err.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} user`);
+      const errorMsg = err.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'create'} user`;
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }

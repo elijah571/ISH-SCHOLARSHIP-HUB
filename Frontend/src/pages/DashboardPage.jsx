@@ -3,6 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/Button';
 import userService from '../services/userService';
+import { PlusIcon, MessageIcon, OverviewIcon, ApplicationIcon, BookmarkIcon, UserIcon, SettingsIcon, LogoutIcon, CubeIcon, GlobeIcon, CalendarIcon, ExternalLinkIcon, TrashIcon } from '../components/icons/Icons';
+import { ConversationList } from '../components/chat/ConversationList';
+import { ChatWindow } from '../components/chat/ChatWindow';
 import {
   PlusIcon,
   OverviewIcon,
@@ -31,6 +34,7 @@ const Sidebar = ({ activeTab, onTabChange, onLogout }) => {
     { name: 'Overview', icon: OverviewIcon, tab: 'overview' },
     { name: 'My Applications', icon: ApplicationIcon, tab: 'applied' },
     { name: 'Saved Scholarships', icon: BookmarkIcon, tab: 'saved' },
+    { name: 'Chat', icon: MessageIcon, tab: 'chat' },
     { name: 'My Profile', icon: UserIcon, tab: 'profile' },
     { name: 'Settings', icon: SettingsIcon, tab: 'settings' }
   ];
@@ -210,6 +214,7 @@ const DashboardPage = () => {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
+  const [selectedConversation, setSelectedConversation] = useState(null);
   
   // Data state
   const [savedScholarships, setSavedScholarships] = useState([]);
@@ -480,6 +485,32 @@ const DashboardPage = () => {
           </div>
         );
 
+      case 'chat':
+        return (
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden" style={{ height: 'calc(100vh - 200px)' }}>
+            <div className="flex h-full">
+              <div className="w-80 border-r border-gray-200">
+                <ConversationList 
+                  onSelectConversation={setSelectedConversation} 
+                  adminMode={false} 
+                />
+              </div>
+              <div className="flex-1">
+                {selectedConversation ? (
+                  <ChatWindow conversationId={selectedConversation} adminMode={false} />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-400">
+                    <div className="text-center">
+                      <MessageIcon />
+                      <p className="mt-2">Select a conversation to start chatting</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+
       case 'profile':
         return (
           <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -568,6 +599,7 @@ const DashboardPage = () => {
               {activeTab === 'saved' && 'Scholarships you\'ve saved for later.'}
               {activeTab === 'profile' && 'Manage your account details.'}
               {activeTab === 'settings' && 'Customize your preferences.'}
+              {activeTab === 'chat' && 'Chat with support.'}
             </p>
           </div>
 

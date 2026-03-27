@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "react-toastify";
 import api from "../../services/api";
 import { EditIcon, EyeIcon, PlusIcon, SearchIcon, TrashIcon } from "../icons/Icons";
 import Loader from "../Loader";
@@ -53,10 +54,12 @@ export const BlogsTab = () => {
 
   const handleFormSuccess = () => {
     fetchBlogs();
+    toast.success("Blog saved successfully");
   };
 
   const handleDeleteSuccess = () => {
     fetchBlogs();
+    toast.success("Blog deleted successfully");
   };
 
   const filteredBlogs = blogs.filter(blog =>

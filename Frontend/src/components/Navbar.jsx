@@ -1,13 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Container } from './Layout';
 import Button from './Button';
 import { useAuth } from '../context/AuthContext';
+import chatService from '../services/chatService';
 
 const Navbar = (props) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const { isAuthenticated, logout, user } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchUnreadCount();
+    }
+  }, [isAuthenticated]);
+
+  const fetchUnreadCount = async () => {
+    try {
+      const response = await chatService.getUserConversations(1, 50);
+      const conversations = response.data.data || [];
+      const totalUnread = conversations.reduce((sum, conv) => sum + (conv.participantUnread || 0), 0);
+      setUnreadCount(totalUnread);
+    } catch (err) {
+      console.error('Failed to fetch unread count:', err);
+    }
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -15,10 +34,10 @@ const Navbar = (props) => {
   };
 
   const navLinks = [
-    { name: 'Scholarships', href: '/scholarships' },
-    { name: 'Blogs', href: '/blog' },
-    { name: 'Newsletters', href: '#newsletter' },
-    { name: 'Internships', href: '/internships' },
+    { name: 'Scholarships', to: '/scholarships' },
+    { name: 'Blogs', to: '/blog' },
+    { name: 'Internships', to: '/internships' },
+    { name: 'Chat', to: '/chat', showBadge: true },
   ];
 
   return (
@@ -40,13 +59,18 @@ const Navbar = (props) => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.name}
-                href={link.href}
-                className="text-gray-700 font-medium hover:text-blue-600 transition-colors duration-200"
+                to={link.href}
+                className="text-gray-700 font-medium hover:text-blue-600 transition-colors duration-200 relative"
               >
                 {link.name}
-              </a>
+                {link.name === 'Chat' && unreadCount > 0 && (
+                  <span className="absolute -top-2 -right-4 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </Link>
             ))}
           </div>
 
@@ -111,10 +135,15 @@ const Navbar = (props) => {
               {navLinks.map((link) => (
                 <Link
                   key={link.name}
-                  to={link.href}
-                  className="text-gray-700 font-medium hover:text-blue-600 transition-colors duration-200 py-2"
+                  to={link.to}
+                  className="text-gray-700 font-medium hover:text-blue-600 transition-colors duration-200 py-2 flex items-center gap-2"
                 >
                   {link.name}
+                  {link.showBadge && unreadCount > 0 && (
+                    <span className="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
                 </Link>
               ))}
               {isAuthenticated ? (
@@ -138,6 +167,11 @@ const Navbar = (props) => {
                 </>
               ) : (
                 <>
+                  <Link to="/chat">
+                    <Button rounded="md" className="mt-2 w-full">
+                      💬 Chat
+                    </Button>
+                  </Link>
                   <Link to="/login">
                     <Button rounded="md" variant="outline" className="mt-2 w-full">
                       Log In
