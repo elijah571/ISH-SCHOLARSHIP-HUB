@@ -3,7 +3,20 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/Button';
 import userService from '../services/userService';
-import { PlusIcon } from '../components/icons/Icons';
+import {
+  PlusIcon,
+  OverviewIcon,
+  ApplicationIcon,
+  BookmarkIcon,
+  UserIcon,
+  SettingsIcon,
+  LogoutIcon,
+  CubeIcon,
+  GlobeIcon,
+  CalendarIcon,
+  ExternalLinkIcon,
+  TrashIcon,
+} from '../components/icons/Icons';
 
 
 const LoadingSpinner = () => (

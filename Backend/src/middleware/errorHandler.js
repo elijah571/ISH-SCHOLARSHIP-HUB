@@ -1,12 +1,17 @@
 import { logger } from '../utils/logger.js';
 
 export const errorHandler = (err, req, res, next) => {
-  logger.error(err.message);
-
   const statusCode = err.statusCode || 500;
+  const message = err.message || 'Unknown error';
+
+  if (statusCode >= 500) {
+    logger.error(message);
+  } else {
+    logger.warn(message);
+  }
 
   res.status(statusCode).json({
     success: false,
-    message: err.isOperational ? err.message : 'Internal Server Error',
+    message: err.isOperational ? message : 'Internal Server Error',
   });
 };

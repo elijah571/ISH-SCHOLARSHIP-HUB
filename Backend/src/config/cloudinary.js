@@ -1,9 +1,6 @@
 // updated uploadsToCloudinary.js
 import { v2 as cloudinary } from 'cloudinary';
-import { Readable } from 'stream';
-import dotenv from 'dotenv';
 import { logger } from '../utils/logger.js';
-dotenv.config();
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,

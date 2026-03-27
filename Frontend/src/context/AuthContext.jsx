@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import api, { setAccessToken } from '../services/api';
 
 const AuthContext = createContext(null);
+const SESSION_HINT_KEY = 'ish_has_session';
+let restoreSessionRequest = null;
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -35,8 +37,23 @@ export const AuthProvider = ({ children }) => {
 
     const restoreSession = async () => {
       hasRestoredSession.current = true;
+
+      const hasSessionHint = localStorage.getItem(SESSION_HINT_KEY) === '1';
+      if (!hasSessionHint) {
+        setUser(null);
+        setAccessToken(null);
+        setLoading(false);
+        return;
+      }
+
       try {
-        const { data } = await api.post('/api/auth/refresh');
+        if (!restoreSessionRequest) {
+          restoreSessionRequest = api.post('/api/auth/refresh').finally(() => {
+            restoreSessionRequest = null;
+          });
+        }
+
+        const { data } = await restoreSessionRequest;
         setAccessToken(data.accessToken);
         const profileData = await fetchProfile();
         if (profileData) {
@@ -47,6 +64,7 @@ export const AuthProvider = ({ children }) => {
       } catch {
         setUser(null);
         setAccessToken(null);
+        localStorage.removeItem(SESSION_HINT_KEY);
       } finally {
         setLoading(false);
       }
@@ -59,6 +77,7 @@ export const AuthProvider = ({ children }) => {
     const { data } = await api.post('/api/auth/login', { email, password });
     setAccessToken(data.accessToken);
     setUser(data.data);
+    localStorage.setItem(SESSION_HINT_KEY, '1');
     return data;
   }, []);
 
@@ -69,8 +88,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setUser(null);
       setAccessToken(null);
-      document.cookie = 'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/api/auth/refresh;';
-      document.cookie = 'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      localStorage.removeItem(SESSION_HINT_KEY);
       window.location.href = '/';
     }
   }, []);
