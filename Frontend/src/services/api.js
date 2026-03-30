@@ -38,6 +38,10 @@ export const setAccessToken = (token) => {
 
 export const getAccessToken = () => accessToken;
 
+export const clearAccessToken = () => {
+  setAccessToken(null);
+};
+
 // ─── Request interceptor ───
 // Attaches Authorization header and CSRF token automatically
 api.interceptors.request.use(async (config) => {
@@ -101,13 +105,13 @@ api.interceptors.response.use(
 
       try {
         const { data } = await api.post('/api/auth/refresh');
-        accessToken = data.accessToken;
-        processQueue(null, accessToken);
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        setAccessToken(data.accessToken);
+        processQueue(null, data.accessToken);
+        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        accessToken = null;
+        clearAccessToken();
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

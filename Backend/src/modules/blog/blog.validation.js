@@ -1,4 +1,5 @@
 import Joi from 'joi';
+import { AppError } from '../../utils/AppError.js';
 
 /* ===================== CREATE BLOG DTO ===================== */
 export class CreateBlogDTO {
@@ -25,7 +26,7 @@ export class CreateBlogDTO {
     });
 
     if (error) {
-      throw new Error(error.details.map((d) => d.message).join(', '));
+      throw new AppError(error.details.map((detail) => detail.message).join(', '), 400);
     }
 
     return value;
@@ -61,7 +62,7 @@ export class UpdateBlogDTO {
     });
 
     if (error) {
-      throw new Error(error.details.map((d) => d.message).join(', '));
+      throw new AppError(error.details.map((detail) => detail.message).join(', '), 400);
     }
 
     return value;

@@ -13,5 +13,6 @@ export const errorHandler = (err, req, res, next) => {
   res.status(statusCode).json({
     success: false,
     message: err.isOperational ? message : 'Internal Server Error',
+    data: null,
   });
 };

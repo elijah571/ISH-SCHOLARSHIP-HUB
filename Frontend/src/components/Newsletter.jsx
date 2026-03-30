@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'react-toastify';
 import { Container, Section } from './Layout';
 import Button from './Button';
 import { Input } from './Input';
@@ -16,17 +17,23 @@ const Newsletter = () => {
 
     try {
       await api.post('/api/newsletter/subscribe', { email });
+      const successMessage = 'Successfully subscribed! Check your email for confirmation.';
       setMessage({
         type: 'success',
-        text: 'Successfully subscribed! Check your email for confirmation.'
+        text: successMessage,
       });
+      toast.success(successMessage);
       setEmail('');
     } catch (err) {
-      const errorMsg = err.response?.data?.message || err.response?.data?.error || 'Failed to subscribe. Please try again.';
+      const errorMsg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        'Failed to subscribe. Please try again.';
       setMessage({
         type: 'error',
-        text: errorMsg
+        text: errorMsg,
       });
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -45,9 +52,10 @@ const Newsletter = () => {
               Never miss an opportunity
             </h2>
             <p className="text-lg text-blue-100 mb-8 leading-relaxed">
-              Subscribe to our newsletter and get the latest scholarships and opportunities delivered directly to your inbox.
+              Subscribe to our newsletter and get the latest scholarships and opportunities
+              delivered directly to your inbox.
             </p>
-            
+
             {message.text && (
               <div
                 className={`mb-6 p-4 rounded-lg text-sm ${
@@ -58,19 +66,24 @@ const Newsletter = () => {
               >
                 <div className="flex items-center justify-between">
                   <span>{message.text}</span>
-                  <button
-                    onClick={handleDismiss}
-                    className="ml-4 text-white/70 hover:text-white"
-                  >
+                  <button onClick={handleDismiss} className="ml-4 text-white/70 hover:text-white">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                 </div>
               </div>
             )}
 
-            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+            <form
+              onSubmit={handleSubscribe}
+              className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto"
+            >
               <Input
                 type="email"
                 placeholder="Enter your email"
@@ -79,7 +92,7 @@ const Newsletter = () => {
                 className="flex-1 bg-blue-50/20 border-blue-200 text-white placeholder-blue-200 h-12"
                 required
               />
-              <Button 
+              <Button
                 type="submit"
                 variant="white"
                 rounded="md"

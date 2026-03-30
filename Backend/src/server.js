@@ -1,12 +1,10 @@
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import http from 'http';
 import { Server } from 'socket.io';
 import { app } from './app.js';
 import { connectDB } from './config/dataBase.js';
 import { logger } from './utils/logger.js';
 import { initializeChatSocket } from './services/chat.socket.js';
-
-dotenv.config();
 
 process.on('uncaughtException', (err) => {
   logger.error('Uncaught Exception:', err);

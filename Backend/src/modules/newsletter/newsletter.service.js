@@ -19,7 +19,7 @@ export const subscribeNewsletterService = async (email) => {
   if (!user) {
     throw new AppError(MESSAGES.USER_NOT_FOUND, 404);
   }
-  const existing = await Newsletter.findOne({ user });
+  const existing = await Newsletter.findOne({ email });
 
   if (existing) {
     if (existing.isActive) {

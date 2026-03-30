@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import Button from '../components/Button';
 import Navbar from '../components/Navbar';
 import api from '../services/api';
@@ -184,11 +185,13 @@ const RegisterPage = () => {
     // Client-side validation
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
+      toast.error('Passwords do not match');
       return;
     }
 
     if (!formData.agreeTerms) {
       setError('Please agree to the Terms of Service and Privacy Policy');
+      toast.error('Please agree to the Terms of Service and Privacy Policy');
       return;
     }
 
@@ -200,10 +203,12 @@ const RegisterPage = () => {
         password: formData.password,
       });
       setIsSuccess(true);
+      toast.success('Registration successful. Check your email to verify your account.');
     } catch (err) {
       const message =
         err.response?.data?.message || 'Registration failed. Please try again.';
       setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }

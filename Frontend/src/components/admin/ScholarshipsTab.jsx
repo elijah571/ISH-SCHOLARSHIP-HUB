@@ -1,11 +1,12 @@
-import { useState } from "react";
-import { useScholarships } from "../../context/ScholarshipContext";
-import { EditIcon, EyeIcon, PlusIcon, SearchIcon, TrashIcon } from "../icons/Icons";
-import Loader from "../Loader";
-import DeleteConfirmationModal from "../scholarships/DeleteConfirmationModal";
-import ScholarshipModal from "../scholarships/ScholarshipModal";
-import { useEffect } from "react";
-import Button from "../Button";
+import { useState } from 'react';
+import { toast } from 'react-toastify';
+import { useScholarships } from '../../context/ScholarshipContext';
+import { EditIcon, EyeIcon, PlusIcon, SearchIcon, TrashIcon } from '../icons/Icons';
+import Loader from '../Loader';
+import DeleteConfirmationModal from '../scholarships/DeleteConfirmationModal';
+import ScholarshipModal from '../scholarships/ScholarshipModal';
+import { useEffect } from 'react';
+import Button from '../Button';
 
 export const ScholarshipsTab = () => {
   const [search, setSearch] = useState('');
@@ -51,8 +52,12 @@ export const ScholarshipsTab = () => {
     setLoading(false);
     
     if (result.success) {
+      toast.success(id ? 'Scholarship updated successfully.' : 'Scholarship created successfully.');
       setShowFormModal(false);
+      setSelectedScholarship(null);
       fetchScholarships({ limit: 100 });
+    } else {
+      toast.error(result.error || (id ? 'Failed to update scholarship.' : 'Failed to create scholarship.'));
     }
   };
 
@@ -63,8 +68,11 @@ export const ScholarshipsTab = () => {
     setDeleting(false);
     
     if (result.success) {
+      toast.success('Scholarship deleted successfully.');
       setShowDeleteModal(false);
       setSelectedScholarship(null);
+    } else {
+      toast.error(result.error || 'Failed to delete scholarship.');
     }
   };
 

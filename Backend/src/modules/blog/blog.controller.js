@@ -36,7 +36,14 @@ export const getBlogsController = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    ...result,
+    message: 'Blogs fetched successfully',
+    data: result.blogs,
+    pagination: {
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      totalPages: result.pages,
+    },
   });
 });
 

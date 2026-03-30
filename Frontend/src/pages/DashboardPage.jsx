@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
 import Button from '../components/Button';
@@ -247,7 +248,7 @@ const DashboardPage = () => {
         setSavedScholarships(savedRes.data.data || []);
         setAppliedScholarships(appliedRes.data.data || []);
       } catch (error) {
-        console.error('Failed to fetch scholarships:', error);
+        toast.error(error.response?.data?.message || 'Failed to load your dashboard data.');
       } finally {
         setLoading(false);
       }
@@ -276,8 +277,9 @@ const DashboardPage = () => {
     try {
       await userService.unsaveScholarship(scholarshipId);
       setSavedScholarships((prev) => prev.filter((s) => s._id !== scholarshipId));
+      toast.success('Scholarship removed from saved list.');
     } catch (error) {
-      console.error('Failed to unsave:', error);
+      toast.error(error.response?.data?.message || 'Failed to remove scholarship.');
     }
   };
 
@@ -296,8 +298,9 @@ const DashboardPage = () => {
           ...prev,
         ]);
       }
+      toast.success('Scholarship marked as applied.');
     } catch (error) {
-      console.error('Failed to mark as applied:', error);
+      toast.error(error.response?.data?.message || 'Failed to mark scholarship as applied.');
     }
   };
 

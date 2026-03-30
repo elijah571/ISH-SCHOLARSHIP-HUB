@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 import argon2 from 'argon2';
+import { AppError } from '../utils/AppError.js';
+import { logger } from '../utils/logger.js';
 const userSchema = new mongoose.Schema(
   {
     fullName: {
@@ -82,7 +84,8 @@ userSchema.pre('save', async function () {
   try {
     this.password = await argon2.hash(this.password);
   } catch (err) {
-    console.log(err);
+    logger.error(`Password hashing failed: ${err.message}`);
+    throw new AppError('Unable to secure password', 500);
   }
 });
 
@@ -90,8 +93,8 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   try {
     return await argon2.verify(this.password, candidatePassword);
   } catch (error) {
-    console.error('Password comparison failed:', error);
-    throw new Error('Password verification failed');
+    logger.error(`Password comparison failed: ${error.message}`);
+    throw new AppError('Password verification failed', 500);
   }
 };
 

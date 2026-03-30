@@ -1,4 +1,5 @@
 import Joi from 'joi';
+import { AppError } from '../../utils/AppError.js';
 
 export class CreateScholarshipDTO {
   constructor(data) {
@@ -24,10 +25,13 @@ export class CreateScholarshipDTO {
   });
 
   validate() {
-    const { error, value } = CreateScholarshipDTO.schema.validate(this);
+    const { error, value } = CreateScholarshipDTO.schema.validate(this, {
+      abortEarly: false,
+      stripUnknown: true,
+    });
 
     if (error) {
-      throw new Error(error.details[0].message);
+      throw new AppError(error.details.map((detail) => detail.message).join(', '), 400);
     }
 
     return value;
@@ -43,8 +47,6 @@ export class UpdateScholarshipDTO {
     this.link = data.link;
     this.duration = data.duration;
     this.image = data.image;
-    this.image = data.image;
-    this.duration = data.duration;
   }
 
   static schema = Joi.object({
@@ -62,10 +64,13 @@ export class UpdateScholarshipDTO {
       'object.min': 'At least one field must be updated',
     });
   validate() {
-    const { error, value } = UpdateScholarshipDTO.schema.validate(this);
+    const { error, value } = UpdateScholarshipDTO.schema.validate(this, {
+      abortEarly: false,
+      stripUnknown: true,
+    });
 
     if (error) {
-      throw new Error(error.details[0].message);
+      throw new AppError(error.details.map((detail) => detail.message).join(', '), 400);
     }
 
     return value;

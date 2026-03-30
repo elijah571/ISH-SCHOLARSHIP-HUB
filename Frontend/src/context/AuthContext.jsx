@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import api, { getAccessToken, setAccessToken } from '../services/api';
+import { toast } from 'react-toastify';
+import api, { clearAccessToken, getAccessToken, setAccessToken } from '../services/api';
 
 const AuthContext = createContext(null);
 let restoreSessionRequest = null;
@@ -57,12 +58,12 @@ export const AuthProvider = ({ children }) => {
           return;
         }
 
-        setAccessToken(null);
+        clearAccessToken();
       }
 
       if (!hasSessionCookie()) {
         setUser(null);
-        setAccessToken(null);
+        clearAccessToken();
         setLoading(false);
         return;
       }
@@ -86,7 +87,7 @@ export const AuthProvider = ({ children }) => {
         }
       } catch {
         setUser(null);
-        setAccessToken(null);
+        clearAccessToken();
         clearSessionCookie();
       } finally {
         setLoading(false);
@@ -106,11 +107,11 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback(async () => {
     try {
       await api.post('/api/auth/logout');
-    } catch (error) {
-      console.error('Logout request failed:', error);
+    } catch {
+      toast.error('We could not reach the server to log you out cleanly.');
     } finally {
       setUser(null);
-      setAccessToken(null);
+      clearAccessToken();
       clearSessionCookie();
       window.location.href = '/';
     }

@@ -1,4 +1,5 @@
 import Joi from 'joi';
+import { AppError } from '../../utils/AppError.js';
 
 export class CreateInternshipDTO {
   constructor(data) {
@@ -34,7 +35,7 @@ export class CreateInternshipDTO {
     });
 
     if (error) {
-      throw new Error(error.details.map((err) => err.message).join(', '));
+      throw new AppError(error.details.map((detail) => detail.message).join(', '), 400);
     }
 
     return value;
@@ -79,7 +80,7 @@ export class UpdateInternshipDTO {
     });
 
     if (error) {
-      throw new Error(error.details.map((err) => err.message).join(', '));
+      throw new AppError(error.details.map((detail) => detail.message).join(', '), 400);
     }
 
     return value;

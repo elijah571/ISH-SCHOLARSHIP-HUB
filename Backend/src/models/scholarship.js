@@ -23,12 +23,9 @@ const scholarshipSchema = new mongoose.Schema(
     },
     link: {
       type: String,
-    },
-    duration: {
-      type: String,
       required: true,
     },
-    link: {
+    duration: {
       type: String,
       required: true,
     },
@@ -51,6 +48,6 @@ const scholarshipSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-scholarshipSchema.index({ title: 'text', country: 'text', deadline: 'text' });
+scholarshipSchema.index({ title: 'text', country: 'text' });
 
 export const Scholarship = mongoose.model('Scholarship', scholarshipSchema);
