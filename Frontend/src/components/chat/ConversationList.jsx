@@ -1,16 +1,38 @@
 // src/components/chat/ConversationList.jsx
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import chatService from '../../services/chatService';
+import { useChat } from '../../context/ChatContext';
 import './ConversationList.css';
 
-export const ConversationList = ({ onSelectConversation, adminMode = false }) => {
+export const ConversationList = ({
+  onSelectConversation,
+  selectedConversationId = null,
+  adminMode = false,
+}) => {
+  const { latestConversationActivity } = useChat();
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1, hasMore: false });
   const [showNewModal, setShowNewModal] = useState(false);
   const [newSubject, setNewSubject] = useState('');
+  const hasBootstrappedConversation = useRef(false);
+
+  const formatConversationTime = (value) => {
+    if (!value) return '';
+
+    const date = new Date(value);
+    const now = new Date();
+    const isSameDay = date.toDateString() === now.toDateString();
+
+    if (isSameDay) {
+      return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    }
+
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  };
 
   const loadConversations = useCallback(async () => {
     try {
@@ -21,18 +43,69 @@ export const ConversationList = ({ onSelectConversation, adminMode = false }) =>
         ? await chatService.getAdminConversations(page)
         : await chatService.getUserConversations(page);
 
-      setConversations(response.data.data || []);
+      const loadedConversations = response.data.data || [];
+      const paginationData = response.data.pagination || {
+        currentPage: page,
+        totalPages: 1,
+        hasMore: false,
+      };
+
+      setConversations(loadedConversations);
+      setPagination(paginationData);
+
+      if (loadedConversations.length > 0) {
+        const selectedStillExists = loadedConversations.some(
+          (conversation) => conversation._id === selectedConversationId
+        );
+
+        if (!selectedConversationId || !selectedStillExists) {
+          onSelectConversation(loadedConversations[0]._id);
+        }
+        return loadedConversations;
+      }
+
+      if (!adminMode && !hasBootstrappedConversation.current) {
+        hasBootstrappedConversation.current = true;
+        const bootstrapResponse = await chatService.createOrGetConversation(null, 'Admin Support');
+        const bootstrapConversationId = bootstrapResponse.data.data?._id;
+
+        if (bootstrapConversationId) {
+          onSelectConversation(bootstrapConversationId);
+          return await loadConversations();
+        }
+      }
+
+      return loadedConversations;
     } catch (err) {
       console.error('Error loading conversations:', err);
       setError('Failed to load conversations');
+      return [];
     } finally {
       setLoading(false);
     }
-  }, [adminMode, page]);
+  }, [adminMode, onSelectConversation, page, selectedConversationId]);
 
   useEffect(() => {
     loadConversations();
   }, [loadConversations]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      void loadConversations();
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [loadConversations]);
+
+  useEffect(() => {
+    if (!latestConversationActivity?.conversationId) {
+      return;
+    }
+
+    void loadConversations();
+  }, [latestConversationActivity, loadConversations]);
+
+  const visibleConversations = useMemo(() => conversations, [conversations]);
 
   const handleSearch = async (e) => {
     const query = e.target.value;
@@ -47,7 +120,12 @@ export const ConversationList = ({ onSelectConversation, adminMode = false }) =>
 
     try {
       const response = await chatService.searchConversations(query);
-      setConversations(response.data.data);
+      const searchedConversations = response.data.data || [];
+      setConversations(searchedConversations);
+
+      if (searchedConversations.length > 0 && !selectedConversationId) {
+        onSelectConversation(searchedConversations[0]._id);
+      }
     } catch (err) {
       console.error('Error searching conversations:', err);
     }
@@ -60,7 +138,7 @@ export const ConversationList = ({ onSelectConversation, adminMode = false }) =>
       setShowNewModal(false);
       setNewSubject('');
       onSelectConversation(response.data.data._id);
-      loadConversations();
+      await loadConversations();
     } catch (err) {
       console.error('Error creating conversation:', err);
       setError('Failed to start conversation');
@@ -96,33 +174,47 @@ export const ConversationList = ({ onSelectConversation, adminMode = false }) =>
       {error && <div className="error">{error}</div>}
 
       <div className="conversations">
-        {conversations.length === 0 ? (
-          <div className="no-conversations">No conversations yet</div>
+        {visibleConversations.length === 0 ? (
+          <div className="no-conversations">
+            <div className="no-conversations-title">No conversations yet</div>
+            <p>{adminMode ? 'New user messages will appear here.' : 'Start a support chat to message the admin team.'}</p>
+          </div>
         ) : (
-          conversations.map((conv) => (
+          visibleConversations.map((conv) => {
+            const otherPerson = adminMode ? conv.participant : conv.admin;
+            const unreadCount = adminMode ? conv.adminUnread : conv.participantUnread;
+            const displayName = otherPerson?.fullName || (adminMode ? 'Student' : 'Support');
+            const avatarText = displayName.charAt(0).toUpperCase();
+            const previewText = conv.lastMessage || conv.subject || 'Start the conversation';
+
+            return (
             <div
               key={conv._id}
-              className="conversation-item"
+              className={`conversation-item ${selectedConversationId === conv._id ? 'active' : ''}`}
               onClick={() => onSelectConversation(conv._id)}
             >
-              <div className="conversation-header">
-                <h4>{adminMode ? conv.participant.fullName : conv.admin.fullName}</h4>
-                <span className="conversation-time">
-                  {new Date(conv.lastMessageTime).toLocaleDateString()}
-                </span>
-              </div>
-              <p className="conversation-preview">{conv.lastMessage || 'No messages yet'}</p>
-              <div className="conversation-footer">
-                <span className={`status ${conv.status}`}>{conv.status}</span>
-                {adminMode && conv.adminUnread > 0 && (
-                  <span className="unread-badge">{conv.adminUnread}</span>
-                )}
-                {!adminMode && conv.participantUnread > 0 && (
-                  <span className="unread-badge">{conv.participantUnread}</span>
-                )}
+              <div className="conversation-avatar">{avatarText}</div>
+              <div className="conversation-body">
+                <div className="conversation-header">
+                  <h4>{displayName}</h4>
+                  <span className="conversation-time">
+                    {formatConversationTime(conv.lastMessageTime || conv.updatedAt)}
+                  </span>
+                </div>
+                <div className="conversation-meta">
+                  <p className="conversation-preview">{previewText}</p>
+                  {unreadCount > 0 && <span className="unread-badge">{unreadCount}</span>}
+                </div>
+                <div className="conversation-footer">
+                  <span className={`status ${conv.status || 'active'}`}>{conv.status || 'active'}</span>
+                  {adminMode && otherPerson?.email && (
+                    <span className="conversation-email">{otherPerson.email}</span>
+                  )}
+                </div>
               </div>
             </div>
-          ))
+          );
+          })
         )}
       </div>
 
@@ -131,7 +223,12 @@ export const ConversationList = ({ onSelectConversation, adminMode = false }) =>
           Previous
         </button>
         <span>Page {page}</span>
-        <button onClick={() => setPage(page + 1)}>Next</button>
+        <button
+          onClick={() => setPage(page + 1)}
+          disabled={page >= (pagination.totalPages || 1)}
+        >
+          Next
+        </button>
       </div>
 
       {showNewModal && (

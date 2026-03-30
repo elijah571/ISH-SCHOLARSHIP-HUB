@@ -24,7 +24,7 @@ router.post(
 
 router.get('/', getBlogsController);
 router.get('/:id', getBlogByIdController);
-router.patch('/:id', upload.single('image'), updateBlogController);
-router.delete('/:id', deleteBlogController);
+router.patch('/:id', upload.single('image'), VerifyUser, isAuthorized('admin'), updateBlogController);
+router.delete('/:id', VerifyUser, isAuthorized('admin'), deleteBlogController);
 
 export default router;

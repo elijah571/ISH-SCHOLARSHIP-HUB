@@ -7,6 +7,36 @@ import { logger } from '../utils/logger.js';
 const activeUsers = new Map();
 const activeConnections = {};
 
+const emitConversationUpdate = async (io, conversationId) => {
+  const conversation = await Conversation.findById(conversationId)
+    .populate('participant', 'fullName email avatar role')
+    .populate('admin', 'fullName email avatar role')
+    .lean();
+
+  if (!conversation) {
+    return;
+  }
+
+  io.to(`conversation_${conversationId}`).emit('conversation_updated', conversation);
+
+  Object.values(activeConnections).forEach((userId) => {
+    const activeUser = activeUsers.get(userId);
+    if (activeUser?.role === 'admin') {
+      io.to(activeUser.socketId).emit('conversation_updated', conversation);
+    }
+  });
+
+  io.to(`user_${conversation.participant._id.toString()}`).emit('conversation_updated', conversation);
+};
+
+const canSocketAccessConversation = (socket, conversation) => {
+  if (socket.userRole === 'admin') {
+    return true;
+  }
+
+  return conversation.participant.toString() === socket.userId;
+};
+
 export const initializeChatSocket = (io) => {
   io.on('connection', async (socket) => {
     logger.info(`User connected with socket ID: ${socket.id}`);
@@ -36,6 +66,10 @@ export const initializeChatSocket = (io) => {
         });
 
         activeConnections[socket.id] = socket.userId;
+        socket.join(`user_${socket.userId}`);
+        if (socket.userRole === 'admin') {
+          socket.join('admins');
+        }
 
         socket.emit('auth_success', { message: 'Authenticated successfully' });
         logger.info(`User ${socket.userId} authenticated`);
@@ -61,10 +95,7 @@ export const initializeChatSocket = (io) => {
         }
 
         // Verify user is part of conversation
-        if (
-          conversation.participant.toString() !== socket.userId &&
-          conversation.admin.toString() !== socket.userId
-        ) {
+        if (!canSocketAccessConversation(socket, conversation)) {
           socket.emit('error', { message: 'You do not have access to this conversation' });
           return;
         }
@@ -126,6 +157,17 @@ export const initializeChatSocket = (io) => {
           return;
         }
 
+        const conversation = await Conversation.findById(conversationId);
+        if (!conversation) {
+          socket.emit('error', { message: 'Conversation not found' });
+          return;
+        }
+
+        if (!canSocketAccessConversation(socket, conversation)) {
+          socket.emit('error', { message: 'You do not have access to this conversation' });
+          return;
+        }
+
         // Save message to database
         const newMessage = await Message.create({
           conversation: conversationId,
@@ -139,7 +181,7 @@ export const initializeChatSocket = (io) => {
         await newMessage.populate('sender', 'fullName email avatar role');
 
         // Update conversation
-        const conversation = await Conversation.findByIdAndUpdate(
+        await Conversation.findByIdAndUpdate(
           conversationId,
           {
             lastMessage: message.trim(),
@@ -151,6 +193,8 @@ export const initializeChatSocket = (io) => {
           },
           { new: true }
         );
+
+        await emitConversationUpdate(io, conversationId);
 
         // Broadcast message to conversation room
         io.to(`conversation_${conversationId}`).emit('receive_message', {
@@ -166,14 +210,11 @@ export const initializeChatSocket = (io) => {
 
         // Notify admin about new message if it's from user
         if (socket.userRole === 'user') {
-          const adminSocket = activeUsers.get(conversation.admin.toString());
-          if (adminSocket) {
-            io.to(adminSocket.socketId).emit('new_message_notification', {
-              conversationId,
-              message: message.substring(0, 50),
-              sender: socket.userName,
-            });
-          }
+          io.to('admins').emit('new_message_notification', {
+            conversationId,
+            message: message.substring(0, 50),
+            sender: socket.userName,
+          });
         }
 
         logger.info(`Message sent in conversation ${conversationId}`);
@@ -326,6 +367,8 @@ export const initializeChatSocket = (io) => {
         } else {
           await Conversation.findByIdAndUpdate(conversationId, { participantUnread: 0 });
         }
+
+        await emitConversationUpdate(io, conversationId);
 
         io.to(`conversation_${conversationId}`).emit('messages_marked_read', {
           conversationId,

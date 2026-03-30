@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import Button from '../components/Button';
 import Navbar from '../components/Navbar';
 import backgroundImage from '../assets/loginBg.jpg'
@@ -89,7 +90,8 @@ const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || null;
+  const redirectTo = new URLSearchParams(location.search).get('redirect');
+  const from = location.state?.from?.pathname || redirectTo || null;
 
   const [formData, setFormData] = useState({
     email: '',
@@ -108,6 +110,7 @@ const LoginPage = () => {
     try {
       const response = await login(formData.email, formData.password);
       const userRole = response?.data?.role;
+      toast.success('Signed in successfully.');
       
       if (from) {
         navigate(from, { replace: true });
@@ -120,6 +123,7 @@ const LoginPage = () => {
       const message =
         err.response?.data?.message || 'Login failed. Please try again.';
       setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }

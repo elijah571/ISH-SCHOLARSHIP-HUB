@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
-import { TableRow } from "../../pages/AdminDashboardPage";
 import { PlusIcon, SearchIcon, EditIcon, EyeIcon, TrashIcon } from "../icons/Icons";
 import Button from "../Button";
 import Loader from "../Loader";
@@ -115,28 +114,6 @@ export const InternshipsTab = () => {
     if (!dateString) return false;
     return new Date(dateString) < new Date();
   };
-
-  const columns = [
-    { key: 'title', render: (val) => <span className="font-medium text-gray-800">{val}</span> },
-    { key: 'institution' },
-    { key: 'country' },
-    { key: 'type', render: (val) => (
-      <span className={`px-2 py-1 text-xs rounded-full ${val === 'Paid' ? 'bg-green-100 text-green-700' : val === 'Stipend' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
-        {val}
-      </span>
-    )},
-    { key: 'deadline', render: (val) => (
-      <span className={isDeadlinePassed(val) ? 'text-red-500' : ''}>
-        {formatDate(val)}
-      </span>
-    )},
-    { key: 'deadline', render: (val) => (
-      <span className={`px-2 py-1 text-xs rounded-full ${isDeadlinePassed(val) ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
-        {isDeadlinePassed(val) ? 'Closed' : 'Open'}
-      </span>
-    )},
-    { key: 'createdAt', render: () => 0 },
-  ];
 
   return (
     <div className="space-y-6">

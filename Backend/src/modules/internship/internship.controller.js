@@ -38,7 +38,9 @@ export const getInternshipsController = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    ...result,
+    data: result.internships,
+    internships: result.internships,
+    pagination: result.pagination,
   });
 });
 
@@ -69,6 +71,6 @@ export const deleteInternshipController = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: 'Scholarship deleted successfully',
+    message: 'Internship deleted successfully',
   });
 });

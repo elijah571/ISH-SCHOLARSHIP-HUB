@@ -1,20 +1,10 @@
-import {
-  uploadsToCloudinary,
-  deleteFromCloudinary,
-} from '../../config/cloudinary.js';
+import { uploadsToCloudinary, deleteFromCloudinary } from '../../config/cloudinary.js';
 import { AppError } from '../../utils/AppError.js';
 import { Blog } from '../../models/blog.model.js';
 import { logActivity } from '../admin/admin.service.js';
 
 /* ===================== CREATE BLOG ===================== */
-export const createBlogService = async ({
-  title,
-  content,
-  slug,
-  image,
-  published,
-  createdBy,
-}) => {
+export const createBlogService = async ({ title, content, slug, image, published, createdBy }) => {
   let uploadedImage = null;
 
   // Upload image if provided
@@ -40,7 +30,10 @@ export const createBlogService = async ({
     throw new AppError('Failed to create blog', 500);
   }
 
-  const creator = await import('../../models/user.model.js').then(m => m.User.findById(createdBy).lean());
+  const creator = await import('../../models/user.model.js').then((m) =>
+    m.User.findById(createdBy).lean()
+  );
+
   await logActivity({
     user: creator || { _id: createdBy, fullName: 'Admin', email: '' },
     action: 'blog_created',
@@ -54,6 +47,8 @@ export const createBlogService = async ({
 
 /* ===================== GET ALL BLOGS ===================== */
 export const getBlogsService = async ({ page = 1, limit = 10, search }) => {
+  const parsedPage = Math.max(Number(page) || 1, 1);
+  const parsedLimit = Math.max(Number(limit) || 10, 1);
   const query = { published: true };
 
   // Text search
@@ -61,17 +56,18 @@ export const getBlogsService = async ({ page = 1, limit = 10, search }) => {
     query.$text = { $search: search };
   }
 
-  const skip = (page - 1) * limit;
+  const skip = (parsedPage - 1) * parsedLimit;
 
   const [blogs, total] = await Promise.all([
-    Blog.find(query).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
+    Blog.find(query).sort({ createdAt: -1 }).skip(skip).limit(parsedLimit),
     Blog.countDocuments(query),
   ]);
 
   return {
     total,
-    page: Number(page),
-    pages: Math.ceil(total / limit),
+    page: parsedPage,
+    limit: parsedLimit,
+    pages: Math.ceil(total / parsedLimit),
     blogs,
   };
 };
@@ -111,9 +107,16 @@ export const updateBlogService = async (id, data) => {
 
   await blog.save();
 
-  const creator = await import('../../models/user.model.js').then(m => m.User.findById(blog.createdBy).lean());
+  const creator = await import('../../models/user.model.js').then((m) =>
+    m.User.findById(blog.createdBy).lean()
+  );
+
   await logActivity({
-    user: creator || { _id: blog.createdBy, fullName: 'Admin', email: '' },
+    user: creator || {
+      _id: blog.createdBy,
+      fullName: 'Admin',
+      email: '',
+    },
     action: 'blog_updated',
     targetType: 'blog',
     targetId: blog._id,
@@ -133,11 +136,19 @@ export const deleteBlogService = async (id) => {
   }
 
   const title = blog.title;
-  const creator = await import('../../models/user.model.js').then(m => m.User.findById(blog.createdBy).lean());
+
+  const creator = await import('../../models/user.model.js').then((m) =>
+    m.User.findById(blog.createdBy).lean()
+  );
+
   await blog.deleteOne();
 
   await logActivity({
-    user: creator || { _id: blog.createdBy, fullName: 'Admin', email: '' },
+    user: creator || {
+      _id: blog.createdBy,
+      fullName: 'Admin',
+      email: '',
+    },
     action: 'blog_deleted',
     targetType: 'blog',
     targetId: id,

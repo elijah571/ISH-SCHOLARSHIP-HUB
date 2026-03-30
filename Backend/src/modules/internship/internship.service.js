@@ -60,16 +60,19 @@ export const getInternshipsService = async ({
 
   const skip = (page - 1) * limit;
 
-  const [internship, total] = await Promise.all([
+  const [internships, total] = await Promise.all([
     Internship.find(query).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
     Internship.countDocuments(query),
   ]);
 
   return {
-    total,
-    page: Number(page),
-    pages: Math.ceil(total / limit),
-    internship,
+    internships,
+    pagination: {
+      page: Number(page),
+      limit: Number(limit),
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
   };
 };
 

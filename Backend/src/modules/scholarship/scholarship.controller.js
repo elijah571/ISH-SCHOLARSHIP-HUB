@@ -6,10 +6,7 @@ import {
   updateScholarshipService,
   deleteScholarshipService,
 } from './scholarship.service.js';
-import {
-  CreateScholarshipDTO,
-  UpdateScholarshipDTO,
-} from './scholarship.validation.js';
+import { CreateScholarshipDTO, UpdateScholarshipDTO } from './scholarship.validation.js';
 
 export const createScholarshipController = asyncHandler(async (req, res) => {
   // Prepare DTO input
@@ -41,7 +38,14 @@ export const getScholarshipsController = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    ...result,
+    message: 'Scholarships fetched successfully',
+    data: result.scholarships,
+    pagination: {
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      totalPages: result.pages,
+    },
   });
 });
 
@@ -61,10 +65,7 @@ export const updateScholarshipController = asyncHandler(async (req, res) => {
 
   const validatedData = dto.validate();
 
-  const scholarship = await updateScholarshipService(
-    req.params.id,
-    validatedData
-  );
+  const scholarship = await updateScholarshipService(req.params.id, validatedData);
 
   res.status(200).json({ success: true, data: scholarship });
 });

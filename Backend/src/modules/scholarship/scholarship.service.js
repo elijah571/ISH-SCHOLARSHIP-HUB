@@ -28,8 +28,6 @@ export const createScholarshipService = async ({
     funding_type,
     link: link || undefined,
     duration: duration || undefined,
-    link,
-    duration,
     image: uploadedImage
       ? {
           url: uploadedImage.secure_url,
@@ -66,6 +64,8 @@ export const getScholarshipsService = async ({
   funding_type,
   deadline,
 }) => {
+  const parsedPage = Math.max(Number(page) || 1, 1);
+  const parsedLimit = Math.max(Number(limit) || 10, 1);
   const query = {};
 
   // 🔍 Text search
@@ -78,17 +78,18 @@ export const getScholarshipsService = async ({
   if (funding_type) query.funding_type = funding_type;
   if (deadline) query.deadline = { $gte: new Date(deadline) };
 
-  const skip = (page - 1) * limit;
+  const skip = (parsedPage - 1) * parsedLimit;
 
   const [scholarships, total] = await Promise.all([
-    Scholarship.find(query).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
+    Scholarship.find(query).sort({ createdAt: -1 }).skip(skip).limit(parsedLimit),
     Scholarship.countDocuments(query),
   ]);
 
   return {
     total,
-    page: Number(page),
-    pages: Math.ceil(total / limit),
+    page: parsedPage,
+    limit: parsedLimit,
+    pages: Math.ceil(total / parsedLimit),
     scholarships,
   };
 };

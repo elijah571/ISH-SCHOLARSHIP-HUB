@@ -7,11 +7,12 @@ import {
   updateUser,
   deleteUser,
 } from './admin.controller.js';
+import { VerifyUser } from '../../middleware/auth.middleware.js';
 import { isAuthorized } from '../../middleware/role.middleware.js';
 
 const router = express.Router();
 
-router.use(isAuthorized('admin'));
+router.use(VerifyUser, isAuthorized('admin'));
 
 router.get('/stats', getStats);
 router.get('/users', getAllUsers);

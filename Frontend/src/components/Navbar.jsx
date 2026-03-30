@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Container } from './Layout';
 import Button from './Button';
@@ -10,14 +10,11 @@ const Navbar = (props) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const { isAuthenticated, logout, user } = useAuth();
   const navigate = useNavigate();
+  const isAdmin = user?.role === 'admin';
+  const dashboardLink = isAdmin ? '/admin' : '/user-dashboard';
+  const displayedUnreadCount = isAuthenticated && !isAdmin ? unreadCount : 0;
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchUnreadCount();
-    }
-  }, [isAuthenticated]);
-
-  const fetchUnreadCount = async () => {
+  const fetchUnreadCount = useCallback(async () => {
     try {
       const response = await chatService.getUserConversations(1, 50);
       const conversations = response.data.data || [];
@@ -26,7 +23,17 @@ const Navbar = (props) => {
     } catch (err) {
       console.error('Failed to fetch unread count:', err);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const timerId = setTimeout(() => {
+        void fetchUnreadCount();
+      }, 0);
+
+      return () => clearTimeout(timerId);
+    }
+  }, [fetchUnreadCount, isAuthenticated]);
 
   const handleLogout = async () => {
     await logout();
@@ -61,13 +68,13 @@ const Navbar = (props) => {
             {navLinks.map((link) => (
               <Link
                 key={link.name}
-                to={link.href}
+                to={link.to}
                 className="text-gray-700 font-medium hover:text-blue-600 transition-colors duration-200 relative"
               >
                 {link.name}
-                {link.name === 'Chat' && unreadCount > 0 && (
+                {link.name === 'Chat' && displayedUnreadCount > 0 && (
                   <span className="absolute -top-2 -right-4 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                    {unreadCount > 9 ? '9+' : unreadCount}
+                    {displayedUnreadCount > 9 ? '9+' : displayedUnreadCount}
                   </span>
                 )}
               </Link>
@@ -82,7 +89,7 @@ const Navbar = (props) => {
                   <span className="text-sm font-medium text-gray-700">
                     Welcome, <span className="text-blue-600">{user?.fullName?.split(' ')[0] || 'User'}</span>
                   </span>
-                  <Link to="/dashboard">
+                  <Link to={dashboardLink}>
                     <Button rounded="md" variant="outline" className="px-5">
                       Dashboard
                     </Button>
@@ -139,9 +146,9 @@ const Navbar = (props) => {
                   className="text-gray-700 font-medium hover:text-blue-600 transition-colors duration-200 py-2 flex items-center gap-2"
                 >
                   {link.name}
-                  {link.showBadge && unreadCount > 0 && (
+                  {link.showBadge && displayedUnreadCount > 0 && (
                     <span className="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5">
-                      {unreadCount > 9 ? '9+' : unreadCount}
+                      {displayedUnreadCount > 9 ? '9+' : displayedUnreadCount}
                     </span>
                   )}
                 </Link>
@@ -153,7 +160,7 @@ const Navbar = (props) => {
                       Welcome, <span className="text-blue-600">{user?.fullName?.split(' ')[0] || 'User'}</span>
                     </span>
                   </div>
-                  <Link to="/dashboard">
+                  <Link to={dashboardLink}>
                     <Button rounded="md" className="mt-2 w-full">
                       Dashboard
                     </Button>

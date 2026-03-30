@@ -1,5 +1,6 @@
 // backend/modules/newsletter/newsletter.validation.js
 import Joi from 'joi';
+import { AppError } from '../../utils/AppError.js';
 
 export class SubscribeNewsletterDTO {
   constructor(data) {
@@ -17,7 +18,7 @@ export class SubscribeNewsletterDTO {
     });
 
     if (error) {
-      throw new Error(error.details.map((d) => d.message).join(', '));
+      throw new AppError(error.details.map((detail) => detail.message).join(', '), 400);
     }
 
     return value;
@@ -40,7 +41,7 @@ export class UnsubscribeNewsletterDTO {
     });
 
     if (error) {
-      throw new Error(error.details.map((d) => d.message).join(', '));
+      throw new AppError(error.details.map((detail) => detail.message).join(', '), 400);
     }
 
     return value;
@@ -65,7 +66,7 @@ export class SendNewsletterDTO {
     });
 
     if (error) {
-      throw new Error(error.details.map((d) => d.message).join(', '));
+      throw new AppError(error.details.map((detail) => detail.message).join(', '), 400);
     }
 
     return value;

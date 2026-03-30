@@ -3,6 +3,11 @@ import { User } from '../../models/user.model.js';
 import { AppError } from '../../utils/AppError.js';
 import { logger } from '../../utils/logger.js';
 
+const populateConversationUsers = (query) =>
+  query
+    .populate('participant', 'fullName email avatar role')
+    .populate('admin', 'fullName email avatar role');
+
 // Create or get conversation between user and admin
 export const createOrGetConversation = async (
   participantId,
@@ -10,10 +15,12 @@ export const createOrGetConversation = async (
   subject = 'Admin Support'
 ) => {
   try {
-    let conversation = await Conversation.findOne({
-      participant: participantId,
-      admin: adminId,
-    }).populate('participant admin', 'fullName email avatar');
+    let conversation = await populateConversationUsers(
+      Conversation.findOne({
+        participant: participantId,
+        isActive: true,
+      })
+    );
 
     if (!conversation) {
       conversation = await Conversation.create({
@@ -21,7 +28,7 @@ export const createOrGetConversation = async (
         admin: adminId,
         subject,
       });
-      await conversation.populate('participant admin', 'fullName email avatar');
+      await conversation.populate('participant admin', 'fullName email avatar role');
     }
 
     return conversation;
@@ -32,19 +39,18 @@ export const createOrGetConversation = async (
 };
 
 // Get all conversations for an admin
-export const getAdminConversations = async (adminId, page = 1, limit = 20) => {
+export const getAdminConversations = async (page = 1, limit = 20) => {
   try {
     const skip = (page - 1) * limit;
 
-    const conversations = await Conversation.find({ admin: adminId, isActive: true })
-      .populate('participant', 'fullName email avatar role')
-      .populate('admin', 'fullName email avatar')
+    const conversations = await populateConversationUsers(
+      Conversation.find({ isActive: true })
       .sort({ lastMessageTime: -1 })
       .skip(skip)
       .limit(limit)
-      .lean();
+    ).lean();
 
-    const total = await Conversation.countDocuments({ admin: adminId, isActive: true });
+    const total = await Conversation.countDocuments({ isActive: true });
 
     return {
       conversations,
@@ -66,13 +72,12 @@ export const getUserConversations = async (userId, page = 1, limit = 20) => {
   try {
     const skip = (page - 1) * limit;
 
-    const conversations = await Conversation.find({ participant: userId, isActive: true })
-      .populate('participant', 'fullName email avatar')
-      .populate('admin', 'fullName email avatar role')
+    const conversations = await populateConversationUsers(
+      Conversation.find({ participant: userId, isActive: true })
       .sort({ lastMessageTime: -1 })
       .skip(skip)
       .limit(limit)
-      .lean();
+    ).lean();
 
     const total = await Conversation.countDocuments({ participant: userId, isActive: true });
 
@@ -94,10 +99,9 @@ export const getUserConversations = async (userId, page = 1, limit = 20) => {
 // Get conversation by ID
 export const getConversationById = async (conversationId) => {
   try {
-    const conversation = await Conversation.findById(conversationId)
-      .populate('participant', 'fullName email avatar')
-      .populate('admin', 'fullName email avatar')
-      .lean();
+    const conversation = await populateConversationUsers(
+      Conversation.findById(conversationId)
+    ).lean();
 
     if (!conversation) {
       throw new AppError('Conversation not found', 404);
@@ -173,6 +177,8 @@ export const sendMessage = async (
     await Conversation.findByIdAndUpdate(conversationId, {
       lastMessage: message,
       lastMessageTime: new Date(),
+      status: 'active',
+      isActive: true,
       // Only increment unread for the recipient
       ...(senderRole === 'user' && { adminUnread: conversation.adminUnread + 1 }),
       ...(senderRole === 'admin' && { participantUnread: conversation.participantUnread + 1 }),
@@ -296,22 +302,17 @@ export const closeConversation = async (conversationId, userId) => {
 };
 
 // Get admin statistics
-export const getAdminChatStats = async (adminId) => {
+export const getAdminChatStats = async () => {
   try {
     const stats = {
       activeConversations: await Conversation.countDocuments({
-        admin: adminId,
         status: 'active',
       }),
-      totalMessages: await Message.countDocuments({
-        sender: adminId,
-      }),
+      totalMessages: await Message.countDocuments({}),
       unreadMessages: await Conversation.countDocuments({
-        admin: adminId,
         adminUnread: { $gt: 0 },
       }),
       closedConversations: await Conversation.countDocuments({
-        admin: adminId,
         status: 'closed',
       }),
     };
@@ -324,20 +325,27 @@ export const getAdminChatStats = async (adminId) => {
 };
 
 // Search conversations
-export const searchConversations = async (adminId, searchQuery) => {
+export const searchConversations = async (searchQuery) => {
   try {
-    const conversations = await Conversation.find({
-      admin: adminId,
+    const matchedUsers = await User.find({
+      $or: [
+        { fullName: { $regex: searchQuery, $options: 'i' } },
+        { email: { $regex: searchQuery, $options: 'i' } },
+      ],
+    }).select('_id');
+
+    const conversations = await populateConversationUsers(
+      Conversation.find({
+      isActive: true,
       $or: [
         { subject: { $regex: searchQuery, $options: 'i' } },
         { lastMessage: { $regex: searchQuery, $options: 'i' } },
+        { participant: { $in: matchedUsers.map((user) => user._id) } },
       ],
     })
-      .populate('participant', 'fullName email avatar')
-      .populate('admin', 'fullName email avatar')
       .sort({ lastMessageTime: -1 })
       .limit(20)
-      .lean();
+    ).lean();
 
     return conversations;
   } catch (error) {

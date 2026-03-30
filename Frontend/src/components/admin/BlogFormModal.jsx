@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
 import Modal from '../Modal';
 import api from '../../services/api';
 

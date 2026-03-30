@@ -38,7 +38,7 @@ const SearchBar = () => {
   };
 
   const handleSearch = () => {
-    console.log('Searching with:', searchData);
+    return searchData;
   };
 
   return (

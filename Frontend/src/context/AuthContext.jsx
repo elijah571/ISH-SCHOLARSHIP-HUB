@@ -1,9 +1,20 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import api, { setAccessToken } from '../services/api';
+import { toast } from 'react-toastify';
+import api, { clearAccessToken, getAccessToken, setAccessToken } from '../services/api';
 
 const AuthContext = createContext(null);
-const SESSION_HINT_KEY = 'ish_has_session';
 let restoreSessionRequest = null;
+
+const hasSessionCookie = () =>
+  document.cookie
+    .split(';')
+    .map((cookie) => cookie.trim())
+    .some((cookie) => cookie === 'ish_session=1');
+
+const clearSessionCookie = () => {
+  document.cookie = 'ish_session=; Max-Age=0; path=/';
+};
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -38,19 +49,32 @@ export const AuthProvider = ({ children }) => {
     const restoreSession = async () => {
       hasRestoredSession.current = true;
 
-      const hasSessionHint = localStorage.getItem(SESSION_HINT_KEY) === '1';
-      if (!hasSessionHint) {
+      const existingAccessToken = getAccessToken();
+      if (existingAccessToken) {
+        const profileData = await fetchProfile();
+        if (profileData) {
+          setUser(profileData);
+          setLoading(false);
+          return;
+        }
+
+        clearAccessToken();
+      }
+
+      if (!hasSessionCookie()) {
         setUser(null);
-        setAccessToken(null);
+        clearAccessToken();
         setLoading(false);
         return;
       }
 
       try {
         if (!restoreSessionRequest) {
-          restoreSessionRequest = api.post('/api/auth/refresh').finally(() => {
-            restoreSessionRequest = null;
-          });
+          restoreSessionRequest = api
+            .post('/api/auth/refresh')
+            .finally(() => {
+              restoreSessionRequest = null;
+            });
         }
 
         const { data } = await restoreSessionRequest;
@@ -63,8 +87,8 @@ export const AuthProvider = ({ children }) => {
         }
       } catch {
         setUser(null);
-        setAccessToken(null);
-        localStorage.removeItem(SESSION_HINT_KEY);
+        clearAccessToken();
+        clearSessionCookie();
       } finally {
         setLoading(false);
       }
@@ -77,7 +101,6 @@ export const AuthProvider = ({ children }) => {
     const { data } = await api.post('/api/auth/login', { email, password });
     setAccessToken(data.accessToken);
     setUser(data.data);
-    localStorage.setItem(SESSION_HINT_KEY, '1');
     return data;
   }, []);
 
@@ -85,10 +108,11 @@ export const AuthProvider = ({ children }) => {
     try {
       await api.post('/api/auth/logout');
     } catch {
+      toast.error('We could not reach the server to log you out cleanly.');
     } finally {
       setUser(null);
-      setAccessToken(null);
-      localStorage.removeItem(SESSION_HINT_KEY);
+      clearAccessToken();
+      clearSessionCookie();
       window.location.href = '/';
     }
   }, []);

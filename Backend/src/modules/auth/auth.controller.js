@@ -27,6 +27,13 @@ const REFRESH_COOKIE_OPTIONS = {
   path: '/',
 };
 
+const SESSION_COOKIE_NAME = 'ish_session';
+
+const SESSION_COOKIE_OPTIONS = {
+  ...COOKIE_OPTIONS,
+  httpOnly: false,
+};
+
 /* ================= REGISTER ================= */
 export const registerUser = asyncHandler(async (req, res) => {
   const { error } = validateRegistration(req.body);
@@ -77,6 +84,10 @@ export const loginUser = asyncHandler(async (req, res) => {
       ...REFRESH_COOKIE_OPTIONS,
       maxAge: 7 * 24 * 60 * 60 * 1000,
     })
+    .cookie(SESSION_COOKIE_NAME, '1', {
+      ...SESSION_COOKIE_OPTIONS,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
     .status(200)
     .json({
       success: true,
@@ -97,6 +108,10 @@ export const refreshToken = asyncHandler(async (req, res) => {
   res
     .cookie('refreshToken', newRefreshToken, {
       ...REFRESH_COOKIE_OPTIONS,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
+    .cookie(SESSION_COOKIE_NAME, '1', {
+      ...SESSION_COOKIE_OPTIONS,
       maxAge: 7 * 24 * 60 * 60 * 1000,
     })
     .status(200)
@@ -142,10 +157,13 @@ export const logout = asyncHandler(async (req, res) => {
     await logoutService(req.user._id, token);
   }
 
-  res.clearCookie('refreshToken', REFRESH_COOKIE_OPTIONS).json({
-    success: true,
-    message: 'Logged out successfully',
-  });
+  res
+    .clearCookie('refreshToken', REFRESH_COOKIE_OPTIONS)
+    .clearCookie(SESSION_COOKIE_NAME, SESSION_COOKIE_OPTIONS)
+    .json({
+      success: true,
+      message: 'Logged out successfully',
+    });
 });
 
 /* ================= LOGOUT ALL DEVICES ================= */
@@ -153,10 +171,13 @@ export const logoutAll = asyncHandler(async (req, res) => {
   req.user.sessions = [];
   await req.user.save();
 
-  res.clearCookie('refreshToken', COOKIE_OPTIONS).json({
-    success: true,
-    message: 'Logged out from all devices',
-  });
+  res
+    .clearCookie('refreshToken', COOKIE_OPTIONS)
+    .clearCookie(SESSION_COOKIE_NAME, SESSION_COOKIE_OPTIONS)
+    .json({
+      success: true,
+      message: 'Logged out from all devices',
+    });
 });
 
 /* ================= SAVE SCHOLARSHIP ================= */

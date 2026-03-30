@@ -16,7 +16,10 @@ export const subscribeNewsletter = asyncHandler(async (req, res) => {
   const validated = dto.validate();
 
   const result = await subscribeNewsletterService(validated.email);
-  res.status(201).json(result);
+  res.status(201).json({
+    success: true,
+    message: result.message,
+  });
 });
 
 export const unsubscribeNewsletter = asyncHandler(async (req, res) => {
@@ -24,7 +27,10 @@ export const unsubscribeNewsletter = asyncHandler(async (req, res) => {
   const validated = dto.validate();
 
   const result = await unsubscribeNewsletterService(validated.email);
-  res.status(200).json(result);
+  res.status(200).json({
+    success: true,
+    message: result.message,
+  });
 });
 
 export const sendNewsletter = asyncHandler(async (req, res) => {
@@ -36,5 +42,8 @@ export const sendNewsletter = asyncHandler(async (req, res) => {
     content: validated.content,
   });
 
-  res.status(200).json(result);
+  res.status(200).json({
+    success: true,
+    message: result.message,
+  });
 });
