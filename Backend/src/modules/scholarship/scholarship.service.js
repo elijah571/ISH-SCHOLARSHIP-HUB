@@ -55,6 +55,17 @@ export const createScholarshipService = async ({
   return scholarship;
 };
 
+/* ===================== GET COUNTRIES ===================== */
+export const getCountriesService = async () => {
+  const countries = await Scholarship.aggregate([
+    { $group: { _id: '$country', count: { $sum: 1 } } },
+    { $match: { _id: { $ne: null, $ne: '' } } },
+    { $sort: { count: -1, _id: 1 } },
+    { $project: { name: '$_id', count: 1, _id: 0 } },
+  ]);
+  return countries;
+};
+
 /* ===================== GET ALL (SEARCH + FILTER + PAGINATION) ===================== */
 export const getScholarshipsService = async ({
   page = 1,
@@ -63,6 +74,14 @@ export const getScholarshipsService = async ({
   country,
   funding_type,
   deadline,
+  field_of_study,
+  location,
+  university,
+  tuition_fees,
+  format,
+  attendance,
+  degree_type,
+  special_programme,
 }) => {
   const parsedPage = Math.max(Number(page) || 1, 1);
   const parsedLimit = Math.max(Number(limit) || 10, 1);
@@ -77,6 +96,14 @@ export const getScholarshipsService = async ({
   if (country) query.country = country;
   if (funding_type) query.funding_type = funding_type;
   if (deadline) query.deadline = { $gte: new Date(deadline) };
+  if (field_of_study) query.field_of_study = field_of_study;
+  if (location) query.location = location;
+  if (university) query.university = university;
+  if (tuition_fees) query.tuition_fees = tuition_fees;
+  if (format) query.format = format;
+  if (attendance) query.attendance = attendance;
+  if (degree_type) query.degree_type = degree_type;
+  if (special_programme) query.special_programme = special_programme;
 
   const skip = (parsedPage - 1) * parsedLimit;
 

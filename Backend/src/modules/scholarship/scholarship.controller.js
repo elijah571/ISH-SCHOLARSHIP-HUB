@@ -3,6 +3,7 @@ import {
   createScholarshipService,
   getScholarshipsService,
   getScholarshipByIdService,
+  getCountriesService,
   updateScholarshipService,
   deleteScholarshipService,
 } from './scholarship.service.js';
@@ -29,6 +30,16 @@ export const createScholarshipController = asyncHandler(async (req, res) => {
     success: true,
     message: 'Scholarship created successfully',
     data: scholarship,
+  });
+});
+
+/* ===================== GET COUNTRIES ===================== */
+export const getCountriesController = asyncHandler(async (req, res) => {
+  const countries = await getCountriesService();
+
+  res.status(200).json({
+    success: true,
+    data: countries,
   });
 });
 

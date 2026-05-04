@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Container } from './Layout';
 import Button from './Button';
+import CountryDropdown from './CountryDropdown';
 import { useAuth } from '../context/AuthContext';
 import chatService from '../services/chatService';
 
@@ -79,6 +80,7 @@ const Navbar = (props) => {
                 )}
               </Link>
             ))}
+            <CountryDropdown />
           </div>
 
           {/* CTA Button */}
@@ -153,6 +155,8 @@ const Navbar = (props) => {
                   )}
                 </Link>
               ))}
+              <div className="border-t border-gray-200 my-2" />
+              <CountryDropdown isMobile />
               {isAuthenticated ? (
                 <>
                   <div className="px-4 py-2">

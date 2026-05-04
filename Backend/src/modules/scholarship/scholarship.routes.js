@@ -3,6 +3,7 @@ import { upload } from '../../middleware/upload.js';
 import {
   createScholarshipController,
   getScholarshipsController,
+  getCountriesController,
   getScholarshipByIdController,
   updateScholarshipController,
   deleteScholarshipController,
@@ -21,6 +22,7 @@ router.post(
   createScholarshipController
 );
 
+router.get('/countries', getCountriesController);
 router.get('/', getScholarshipsController);
 router.get('/:id', getScholarshipByIdController);
 router.patch(

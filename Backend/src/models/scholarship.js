@@ -30,6 +30,31 @@ const scholarshipSchema = new mongoose.Schema(
       required: true,
     },
 
+    field_of_study: {
+      type: String,
+    },
+    location: {
+      type: String,
+    },
+    university: {
+      type: String,
+    },
+    tuition_fees: {
+      type: String,
+    },
+    format: {
+      type: String,
+    },
+    attendance: {
+      type: String,
+    },
+    degree_type: {
+      type: String,
+    },
+    special_programme: {
+      type: String,
+    },
+
     image: {
       url: String,
       publicId: String,

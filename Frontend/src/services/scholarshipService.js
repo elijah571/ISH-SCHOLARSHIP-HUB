@@ -16,17 +16,29 @@ const scholarshipService = {
    * @param {string} params.funding_type - Filter by funding type
    * @returns {Promise} API response
    */
-  getAll: async ({ page = 1, limit = 10, search, country, funding_type } = {}) => {
+  getAll: async ({ page = 1, limit = 10, search, country, funding_type, field_of_study, location, university, tuition_fees, format, attendance, degree_type, special_programme } = {}) => {
     const params = new URLSearchParams();
     if (page) params.append('page', page);
     if (limit) params.append('limit', limit);
     if (search) params.append('search', search);
     if (country) params.append('country', country);
     if (funding_type) params.append('funding_type', funding_type);
+    if (field_of_study) params.append('field_of_study', field_of_study);
+    if (location) params.append('location', location);
+    if (university) params.append('university', university);
+    if (tuition_fees) params.append('tuition_fees', tuition_fees);
+    if (format) params.append('format', format);
+    if (attendance) params.append('attendance', attendance);
+    if (degree_type) params.append('degree_type', degree_type);
+    if (special_programme) params.append('special_programme', special_programme);
 
     const queryString = params.toString();
     const url = `/api/scholarship${queryString ? `?${queryString}` : ''}`;
     return api.get(url);
+  },
+
+  getCountries: async () => {
+    return api.get('/api/scholarship/countries');
   },
 
   /**

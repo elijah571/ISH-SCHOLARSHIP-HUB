@@ -6,6 +6,7 @@ import ScholarshipListingPage from "./pages/ScholarshipListingPage";
 import ScholarshipDetailsPage from "./pages/ScholarshipDetailsPage";
 import InternshipListingPage from "./pages/InternshipListingPage";
 import InternshipDetailsPage from "./pages/InternshipDetailsPage";
+import CountryScholarshipsPage from "./pages/CountryScholarshipsPage";
 import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
@@ -26,6 +27,7 @@ export default function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/scholarships" element={<ScholarshipListingPage />} />
       <Route path="/scholarships/:id" element={<ScholarshipDetailsPage />} />
+      <Route path="/countries/:country" element={<CountryScholarshipsPage />} />
       <Route path="/internships" element={<InternshipListingPage />} />
       <Route path="/internships/:id" element={<InternshipDetailsPage />} />
       <Route path="/blog" element={<BlogPage />} />
