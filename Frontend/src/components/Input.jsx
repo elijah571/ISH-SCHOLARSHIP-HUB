@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Input = ({ 
+export const Input = ({ 
   type = 'text', 
   placeholder = '', 
   className = '', 
@@ -31,7 +31,7 @@ const Input = ({
   );
 };
 
-const Select = ({ 
+export const Select = ({ 
   options = [], 
   placeholder = 'Select option', 
   className = '', 
@@ -67,4 +67,4 @@ const Select = ({
   );
 };
 
-export { Input, Select };
+export default { Input, Select };

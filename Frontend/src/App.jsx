@@ -18,6 +18,17 @@ import BlogPage from "./pages/BlogPage";
 import BlogDetailsPage from "./pages/BlogDetailsPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ChatPage } from "./pages/ChatPage";
+import ApplyGuidePage from "./pages/ApplyGuidePage";
+import StudentResourcesPage from "./pages/StudentResourcesPage";
+import SuccessStoriesPage from "./pages/SuccessStoriesPage";
+import ResumeReviewPage from "./pages/ResumeReviewPage";
+import InterviewPrepPage from "./pages/InterviewPrepPage";
+import EssayEditingPage from "./pages/EssayEditingPage";
+import AdmissionConsultingPage from "./pages/AdmissionConsultingPage";
+import ContactPage from "./pages/ContactPage";
+import FAQPage from "./pages/FAQPage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import TermsOfServicePage from "./pages/TermsOfServicePage";
 import FloatingChatButton from "./components/FloatingChatButton";
 
 export default function App() {
@@ -61,6 +72,17 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+      <Route path="/apply-guide" element={<ApplyGuidePage />} />
+      <Route path="/student-resources" element={<StudentResourcesPage />} />
+      <Route path="/success-stories" element={<SuccessStoriesPage />} />
+      <Route path="/services/resume-review" element={<ResumeReviewPage />} />
+      <Route path="/services/interview-prep" element={<InterviewPrepPage />} />
+      <Route path="/services/essay-editing" element={<EssayEditingPage />} />
+      <Route path="/services/admission-consulting" element={<AdmissionConsultingPage />} />
+      <Route path="/contact" element={<ContactPage />} />
+      <Route path="/faq" element={<FAQPage />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+      <Route path="/terms-of-service" element={<TermsOfServicePage />} />
     </Routes>
     <ToastContainer
       position="top-right"
