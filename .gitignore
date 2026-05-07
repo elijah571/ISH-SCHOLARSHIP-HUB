@@ -26,6 +26,9 @@ npm-debug.log*
 
 # Agent/Session files
 .agend/
+.agent/
+.sisyphus/
+.codex/
 .vscode/
 AGENTS.md
 FRONTENDGuide.md

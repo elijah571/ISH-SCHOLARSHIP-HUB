@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Container, Section } from './Layout';
 
 const Footer = () => {
@@ -9,24 +10,24 @@ const Footer = () => {
   ];
 
   const quickLinks = [
-    'Find Scholarships',
-    'Apply Guide',
-    'Student Resources',
-    'Success Stories'
+    { label: 'Find Scholarships', to: '/scholarships' },
+    { label: 'Apply Guide', to: '/apply-guide' },
+    { label: 'Student Resources', to: '/student-resources' },
+    { label: 'Success Stories', to: '/success-stories' },
   ];
 
   const services = [
-    'Resume Review',
-    'Interview Prep',
-    'Essay Editing',
-    'Admission Consulting'
+    { label: 'Resume Review', to: '/services/resume-review' },
+    { label: 'Interview Prep', to: '/services/interview-prep' },
+    { label: 'Essay Editing', to: '/services/essay-editing' },
+    { label: 'Admission Consulting', to: '/services/admission-consulting' },
   ];
 
   const support = [
-    'Contact Us',
-    'FAQ',
-    'Privacy Policy',
-    'Terms of Service'
+    { label: 'Contact Us', to: '/contact' },
+    { label: 'FAQ', to: '/faq' },
+    { label: 'Privacy Policy', to: '/privacy-policy' },
+    { label: 'Terms of Service', to: '/terms-of-service' },
   ];
 
   return (
@@ -69,9 +70,9 @@ const Footer = () => {
             <ul className="space-y-2">
               {quickLinks.map((link, index) => (
                 <li key={index}>
-                  <a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">
-                    {link}
-                  </a>
+                  <Link to={link.to} className="text-gray-600 hover:text-blue-600 transition-colors duration-200">
+                    {link.label}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -83,9 +84,9 @@ const Footer = () => {
             <ul className="space-y-2">
               {services.map((service, index) => (
                 <li key={index}>
-                  <a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">
-                    {service}
-                  </a>
+                  <Link to={service.to} className="text-gray-600 hover:text-blue-600 transition-colors duration-200">
+                    {service.label}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -97,9 +98,9 @@ const Footer = () => {
             <ul className="space-y-2">
               {support.map((item, index) => (
                 <li key={index}>
-                  <a href="#" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">
-                    {item}
-                  </a>
+                  <Link to={item.to} className="text-gray-600 hover:text-blue-600 transition-colors duration-200">
+                    {item.label}
+                  </Link>
                 </li>
               ))}
             </ul>
