@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import Card from '../Card';
 
 const BlogCard = ({ post }) => {
-  const { _id, id, title, slug, content, author, createdAt, category, readTime, imageUrl, image } = post;
+  const { _id, id, title, content, author, createdAt, category, readTime, imageUrl, image } = post;
   const excerpt = post.excerpt || (content ? content.replace(/[#*`]/g, '').slice(0, 150) + '…' : '');
   const displayImage = imageUrl || image;
   const date = post.date || (createdAt ? new Date(createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '');
