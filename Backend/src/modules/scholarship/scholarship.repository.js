@@ -8,7 +8,8 @@ export const scholarshipRepo = {
     Scholarship.findByPk(id, { include: [creatorAttrs] }),
 
   findAll: async ({ page = 1, limit = 10, search, country, funding_type, deadline,
-    field_of_study, location, university, tuition_fees, format, attendance, degree_type, special_programme }) => {
+    field_of_study, location, university, tuition_fees, format, attendance, degree_type,
+    special_programme, sort = 'newest' }) => {
     const parsedPage = Math.max(Number(page) || 1, 1);
     const parsedLimit = Math.max(Number(limit) || 10, 1);
     const offset = (parsedPage - 1) * parsedLimit;
@@ -18,28 +19,41 @@ export const scholarshipRepo = {
       where[Op.or] = [
         { title: { [Op.iLike]: `%${search}%` } },
         { description: { [Op.iLike]: `%${search}%` } },
+        { country: { [Op.iLike]: `%${search}%` } },
+        { host: { [Op.iLike]: `%${search}%` } },
       ];
     }
-    if (country) where.country = country;
-    if (funding_type) where.fundingType = funding_type;
+    if (country) where.country = { [Op.iLike]: `%${country}%` };
+    if (funding_type) where.fundingType = { [Op.iLike]: `%${funding_type}%` };
     if (deadline) where.deadline = { [Op.gte]: new Date(deadline) };
-    if (field_of_study) where.fieldOfStudy = field_of_study;
-    if (location) where.location = location;
-    if (university) where.university = university;
-    if (tuition_fees) where.tuitionFees = tuition_fees;
-    if (format) where.format = format;
-    if (attendance) where.attendance = attendance;
-    if (degree_type) where.degreeType = degree_type;
-    if (special_programme) where.specialProgramme = special_programme;
+    if (field_of_study) where.fieldOfStudy = { [Op.iLike]: `%${field_of_study}%` };
+    if (location) where.location = { [Op.iLike]: `%${location}%` };
+    if (university) where.university = { [Op.iLike]: `%${university}%` };
+    if (tuition_fees) where.tuitionFees = { [Op.iLike]: `%${tuition_fees}%` };
+    if (format) where.format = { [Op.iLike]: `%${format}%` };
+    if (attendance) where.attendance = { [Op.iLike]: `%${attendance}%` };
+    if (degree_type) where.degreeType = { [Op.iLike]: `%${degree_type}%` };
+    if (special_programme) where.specialProgramme = { [Op.iLike]: `%${special_programme}%` };
+
+    const ORDER_MAP = {
+      newest: [['createdAt', 'DESC']],
+      oldest: [['createdAt', 'ASC']],
+      deadline: [['deadline', 'ASC']],
+      title: [['title', 'ASC']],
+      name: [['title', 'ASC']],
+      amount: [['amount', 'ASC']],
+    };
+    const order = ORDER_MAP[sort] || ORDER_MAP.newest;
 
     const { rows: scholarships, count: total } = await Scholarship.findAndCountAll({
       where,
-      order: [['createdAt', 'DESC']],
+      order,
       offset,
       limit: parsedLimit,
     });
 
-    return { scholarships, total, page: parsedPage, limit: parsedLimit, pages: Math.ceil(total / parsedLimit) };
+    const totalPages = Math.ceil(total / parsedLimit);
+    return { scholarships, total, page: parsedPage, limit: parsedLimit, totalPages, pages: totalPages };
   },
 
   getCountries: () =>

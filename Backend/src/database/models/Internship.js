@@ -16,6 +16,7 @@ export const Internship = sequelize.define('Internship', {
   link: { type: DataTypes.TEXT, allowNull: true },
   startDate: { type: DataTypes.DATE, allowNull: true },
   endDate: { type: DataTypes.DATE, allowNull: true },
+  fieldOfStudy: { type: DataTypes.STRING(255), allowNull: true },
   imageUrl: { type: DataTypes.TEXT, allowNull: true },
   imagePublicId: { type: DataTypes.STRING(255), allowNull: true },
   createdById: { type: DataTypes.UUID, allowNull: false },

@@ -3,6 +3,11 @@ import Modal from '../Modal';
 import Button from '../Button';
 import { getNames } from 'country-list';
 
+const FIELD_OF_STUDY_OPTIONS = [
+  'All Fields', 'Computer Science', 'Engineering', 'Business & Management',
+  'Medicine & Health', 'Law', 'Arts & Humanities', 'Social Sciences', 'Natural Sciences',
+];
+
 const EMPTY_FORM = {
   title: '',
   description: '',
@@ -11,6 +16,7 @@ const EMPTY_FORM = {
   funding_type: '',
   duration: '',
   link: '',
+  fieldOfStudy: '',
   imageUrl: '',
 };
 
@@ -24,10 +30,11 @@ const getInitialFormData = (scholarship) => {
     description: scholarship.description || '',
     country: scholarship.country || '',
     deadline: scholarship.deadline ? scholarship.deadline.split('T')[0] : '',
-    funding_type: scholarship.funding_type || '',
+    funding_type: scholarship.fundingType || scholarship.funding_type || '',
     duration: scholarship.duration || '',
     link: scholarship.link || '',
-    imageUrl: scholarship.image?.url || scholarship.image || '',
+    fieldOfStudy: scholarship.fieldOfStudy || '',
+    imageUrl: scholarship.imageUrl || scholarship.image?.url || scholarship.image || '',
   };
 };
 
@@ -100,6 +107,7 @@ const ScholarshipModal = ({ isOpen, onClose, onSubmit, scholarship, loading }) =
     data.append('deadline', formData.deadline);
     data.append('funding_type', formData.funding_type);
     if (formData.duration) data.append('duration', formData.duration.trim());
+    if (formData.fieldOfStudy) data.append('fieldOfStudy', formData.fieldOfStudy);
     if (formData.link) data.append('link', formData.link.trim());
     if (imageFile) {
       data.append('image', imageFile);
@@ -227,6 +235,23 @@ const ScholarshipModal = ({ isOpen, onClose, onSubmit, scholarship, loading }) =
               className="w-full px-3 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
             />
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Field of Study
+          </label>
+          <select
+            name="fieldOfStudy"
+            value={formData.fieldOfStudy}
+            onChange={handleChange}
+            className="w-full px-3 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors bg-white"
+          >
+            <option value="">Select field of study</option>
+            {FIELD_OF_STUDY_OPTIONS.map((f) => (
+              <option key={f} value={f}>{f}</option>
+            ))}
+          </select>
         </div>
 
         <div>

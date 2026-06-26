@@ -4,9 +4,9 @@ import Button from '../Button';
 const FiltersSidebar = ({ filters, onFilterChange, onResetFilters }) => {
   const fundingTypes = [
     { id: '', label: 'All Types' },
-    { id: 'Fully Funded', label: 'Fully Funded' },
-    { id: 'Partial Funding', label: 'Partial Funding' },
-    { id: 'Self-Funded', label: 'Self-Funded' },
+    { id: 'fully-funded', label: 'Fully Funded' },
+    { id: 'partially-funded', label: 'Partial Funding' },
+    { id: 'self-funded', label: 'Self-Funded' },
   ];
 
   const popularCountries = [

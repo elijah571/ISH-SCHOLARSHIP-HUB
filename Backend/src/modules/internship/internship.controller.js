@@ -36,8 +36,12 @@ export const getInternshipsController = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     data: result.internships,
-    internships: result.internships,
-    pagination: result.pagination,
+    pagination: {
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      totalPages: result.totalPages,
+    },
   });
 });
 

@@ -26,8 +26,9 @@ const InternshipListingPage = () => {
       search: search.trim() || undefined,
       type: filters.type || undefined,
       country: filters.location || undefined,
+      sort: sortBy,
     });
-  }, [currentPage, search, filters, fetchInternships]);
+  }, [currentPage, search, filters, sortBy, fetchInternships]);
 
   useEffect(() => {
     loadInternships();
@@ -67,7 +68,7 @@ const InternshipListingPage = () => {
             search={search}
             setSearch={handleSearch}
             sortBy={sortBy}
-            setSortBy={setSortBy}
+            setSortBy={(val) => { setSortBy(val); setCurrentPage(1); }}
             showResultCount
             resultCount={pagination.total}
             loading={loading}

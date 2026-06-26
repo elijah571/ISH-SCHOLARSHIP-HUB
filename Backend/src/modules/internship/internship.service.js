@@ -15,7 +15,7 @@ export const createInternshipService = async (data, createdByUser) => {
     title: data.title, institution: data.institution,
     description: data.description, country: data.country,
     deadline: data.deadline ? new Date(data.deadline) : null,
-    type: data.type, link: data.link,
+    type: data.type, link: data.link, fieldOfStudy: data.fieldOfStudy || null,
     startDate: data.startDate ? new Date(data.startDate) : null,
     endDate: data.endDate ? new Date(data.endDate) : null,
     imageUrl, imagePublicId,
@@ -52,7 +52,7 @@ export const updateInternshipService = async (id, data, updatingUser) => {
     updateData.imagePublicId = uploaded.public_id;
   }
 
-  for (const key of ['title', 'institution', 'description', 'country', 'type', 'link']) {
+  for (const key of ['title', 'institution', 'description', 'country', 'type', 'link', 'fieldOfStudy']) {
     if (data[key] !== undefined) updateData[key] = data[key];
   }
   for (const key of ['deadline', 'startDate', 'endDate']) {

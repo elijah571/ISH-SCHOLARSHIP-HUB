@@ -6,7 +6,7 @@ const creatorAttrs = { model: User, as: 'createdBy', attributes: ['id', 'fullNam
 export const blogRepo = {
   findById: (id) => Blog.findByPk(id, { include: [creatorAttrs] }),
 
-  findAll: async ({ page = 1, limit = 10, search, publishedOnly = true }) => {
+  findAll: async ({ page = 1, limit = 10, search, publishedOnly = true, sort = 'newest' }) => {
     const parsedPage = Math.max(Number(page) || 1, 1);
     const parsedLimit = Math.max(Number(limit) || 10, 1);
     const offset = (parsedPage - 1) * parsedLimit;
@@ -20,14 +20,22 @@ export const blogRepo = {
       ];
     }
 
+    const ORDER_MAP = {
+      newest: [['createdAt', 'DESC']],
+      oldest: [['createdAt', 'ASC']],
+      title: [['title', 'ASC']],
+    };
+    const order = ORDER_MAP[sort] || ORDER_MAP.newest;
+
     const { rows: blogs, count: total } = await Blog.findAndCountAll({
       where,
-      order: [['createdAt', 'DESC']],
+      order,
       offset,
       limit: parsedLimit,
     });
 
-    return { blogs, total, page: parsedPage, limit: parsedLimit, pages: Math.ceil(total / parsedLimit) };
+    const totalPages = Math.ceil(total / parsedLimit);
+    return { blogs, total, page: parsedPage, limit: parsedLimit, totalPages, pages: totalPages };
   },
 
   create: (data) => Blog.create(data),

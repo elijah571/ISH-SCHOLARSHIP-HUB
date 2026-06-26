@@ -48,11 +48,12 @@ const CountryScholarshipsPage = () => {
 
       const response = await scholarshipService.getAll(params);
       const data = response.data;
-      setScholarships(data.scholarships || data.data || []);
+      setScholarships(data.data || data.scholarships || []);
+      const pg = data.pagination || {};
       setPagination({
-        total: data.total || 0,
-        page: data.page || 1,
-        totalPages: data.pages || 1,
+        total: pg.total ?? data.total ?? 0,
+        page: pg.page ?? data.page ?? 1,
+        totalPages: pg.totalPages ?? data.pages ?? 1,
       });
     } catch {
       setError('Failed to load scholarships. Please try again.');

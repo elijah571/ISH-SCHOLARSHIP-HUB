@@ -3,6 +3,11 @@ import Modal from '../Modal';
 import Button from '../Button';
 import { getNames } from 'country-list';
 
+const FIELD_OF_STUDY_OPTIONS = [
+  'All Fields', 'Computer Science', 'Engineering', 'Business & Management',
+  'Medicine & Health', 'Law', 'Arts & Humanities', 'Social Sciences', 'Natural Sciences',
+];
+
 const EMPTY_FORM = {
   title: '',
   institution: '',
@@ -13,6 +18,7 @@ const EMPTY_FORM = {
   startDate: '',
   endDate: '',
   link: '',
+  fieldOfStudy: '',
   imageUrl: '',
 };
 
@@ -31,7 +37,8 @@ const getInitialFormData = (internship) => {
     startDate: internship.startDate ? internship.startDate.split('T')[0] : '',
     endDate: internship.endDate ? internship.endDate.split('T')[0] : '',
     link: internship.link || '',
-    imageUrl: internship.image?.url || '',
+    fieldOfStudy: internship.fieldOfStudy || '',
+    imageUrl: internship.imageUrl || internship.image?.url || '',
   };
 };
 
@@ -109,6 +116,7 @@ const InternshipFormModal = ({ isOpen, onClose, onSubmit, internship, loading })
     data.append('startDate', formData.startDate);
     data.append('endDate', formData.endDate);
     if (formData.link) data.append('link', formData.link.trim());
+    if (formData.fieldOfStudy) data.append('fieldOfStudy', formData.fieldOfStudy);
     if (imageFile) {
       data.append('image', imageFile);
     }
@@ -288,6 +296,23 @@ const InternshipFormModal = ({ isOpen, onClose, onSubmit, internship, loading })
             }`}
           />
           {errors.link && <p className="mt-1 text-sm text-red-600">{errors.link}</p>}
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Field of Study
+          </label>
+          <select
+            name="fieldOfStudy"
+            value={formData.fieldOfStudy}
+            onChange={handleChange}
+            className="w-full px-3 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors bg-white"
+          >
+            <option value="">Select field of study</option>
+            {FIELD_OF_STUDY_OPTIONS.map((f) => (
+              <option key={f} value={f}>{f}</option>
+            ))}
+          </select>
         </div>
 
         <div>

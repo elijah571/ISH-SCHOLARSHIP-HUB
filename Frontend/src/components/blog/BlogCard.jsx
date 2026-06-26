@@ -3,7 +3,10 @@ import { Link } from 'react-router-dom';
 import Card from '../Card';
 
 const BlogCard = ({ post }) => {
-  const { _id, id, title, excerpt, author, date, category, readTime, image } = post;
+  const { _id, id, title, slug, content, author, createdAt, category, readTime, imageUrl, image } = post;
+  const excerpt = post.excerpt || (content ? content.replace(/[#*`]/g, '').slice(0, 150) + '…' : '');
+  const displayImage = imageUrl || image;
+  const date = post.date || (createdAt ? new Date(createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '');
   const postId = _id || id;
 
   const categoryColors = {
@@ -16,19 +19,21 @@ const BlogCard = ({ post }) => {
   return (
     <Card className="overflow-hidden group">
     <Link to={`/blog/${postId}`} className="block overflow-hidden">
-        <img 
-          src={image} 
+        <img
+          src={displayImage}
           alt={title}
           className="w-full h-48 object-cover transform group-hover:scale-105 transition-transform duration-300"
         />
       </Link>
 
       <Card.Content>
-        <Link to={`/blog?category=${category}`}>
-          <span className={`inline-block px-2.5 py-1 text-xs font-semibold rounded-full ${categoryColors[category] || 'bg-gray-100 text-gray-800'} mb-3`}>
-            {category.charAt(0).toUpperCase() + category.slice(1)}
-          </span>
-        </Link>
+        {category && (
+          <Link to={`/blog?category=${category}`}>
+            <span className={`inline-block px-2.5 py-1 text-xs font-semibold rounded-full ${categoryColors[category] || 'bg-gray-100 text-gray-800'} mb-3`}>
+              {category.charAt(0).toUpperCase() + category.slice(1)}
+            </span>
+          </Link>
+        )}
 
         <Link to={`/blog/${postId}`}>
           <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors duration-200 line-clamp-2">

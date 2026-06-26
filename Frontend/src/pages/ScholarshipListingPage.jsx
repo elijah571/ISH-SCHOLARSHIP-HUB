@@ -26,8 +26,9 @@ const ScholarshipListingPage = () => {
       search: search.trim() || undefined,
       country: filters.country || undefined,
       funding_type: filters.funding_type || undefined,
+      sort: sortBy,
     });
-  }, [currentPage, search, filters, fetchScholarships]);
+  }, [currentPage, search, filters, sortBy, fetchScholarships]);
 
   useEffect(() => {
     loadScholarships();
@@ -70,7 +71,7 @@ const ScholarshipListingPage = () => {
             search={search}
             setSearch={handleSearch}
             sortBy={sortBy}
-            setSortBy={setSortBy}
+            setSortBy={(val) => { setSortBy(val); setCurrentPage(1); }}
             showResultCount
             resultCount={pagination.total}
             loading={loading}
