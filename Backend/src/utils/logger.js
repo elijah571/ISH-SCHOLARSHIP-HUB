@@ -3,16 +3,11 @@ import winston from 'winston';
 import path from 'path';
 import fs from 'fs';
 
-// Ensure log directory exists
-const logDir = 'logs';
-if (!fs.existsSync(logDir)) {
-  fs.mkdirSync(logDir);
-}
+const isProduction = process.env.NODE_ENV === 'production';
 
 const { combine, timestamp, errors, printf, colorize, json, splat } =
   winston.format;
 
-// Custom log format for console (more readable)
 const consoleFormat = combine(
   colorize(),
   timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
@@ -25,7 +20,6 @@ const consoleFormat = combine(
   })
 );
 
-// JSON format for files (structured logging)
 const fileFormat = combine(
   timestamp(),
   errors({ stack: true }),
@@ -33,43 +27,34 @@ const fileFormat = combine(
   json()
 );
 
-// Create logger
+const transports = [
+  new winston.transports.Console({ format: consoleFormat }),
+];
+
+// File transports only in development (container runs as non-root in production)
+if (!isProduction) {
+  const logDir = 'logs';
+  if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir);
+  }
+  transports.push(
+    new winston.transports.File({ filename: path.join(logDir, 'error.log'), level: 'error', format: fileFormat }),
+    new winston.transports.File({ filename: path.join(logDir, 'combined.log'), format: fileFormat })
+  );
+}
+
 export const logger = winston.createLogger({
-  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+  level: isProduction ? 'info' : 'debug',
   defaultMeta: { service: 'ISH-Scholarship-Hub' },
-  transports: [
-    // Console logs (pretty in dev)
-    new winston.transports.Console({
-      format: consoleFormat,
-    }),
-
-    // Error logs
-    new winston.transports.File({
-      filename: path.join(logDir, 'error.log'),
-      level: 'error',
-      format: fileFormat,
-    }),
-
-    // Combined logs
-    new winston.transports.File({
-      filename: path.join(logDir, 'combined.log'),
-      format: fileFormat,
-    }),
-  ],
-  exitOnError: false, // Prevent exit on handled exceptions
+  transports,
+  exitOnError: false,
 });
 
-// Optional: Catch unhandled exceptions and unhandled rejections
-logger.exceptions.handle(
-  new winston.transports.File({
-    filename: path.join(logDir, 'exceptions.log'),
-    format: fileFormat,
-  })
-);
-
-logger.rejections.handle(
-  new winston.transports.File({
-    filename: path.join(logDir, 'rejections.log'),
-    format: fileFormat,
-  })
-);
+if (!isProduction) {
+  logger.exceptions.handle(
+    new winston.transports.File({ filename: 'logs/exceptions.log', format: fileFormat })
+  );
+  logger.rejections.handle(
+    new winston.transports.File({ filename: 'logs/rejections.log', format: fileFormat })
+  );
+}
