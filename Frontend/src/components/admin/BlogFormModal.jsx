@@ -118,7 +118,7 @@ const BlogFormModal = ({ isOpen, onClose, onSuccess, blog = null }) => {
       }
 
       if (isEditMode) {
-        await api.patch(`/api/blog/${blog._id}`, formDataToSend);
+        await api.patch(`/api/blog/${blog.id}`, formDataToSend);
       } else {
         await api.post('/api/blog/create', formDataToSend);
       }

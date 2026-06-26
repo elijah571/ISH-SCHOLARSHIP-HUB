@@ -10,7 +10,7 @@ const ScholarshipCard = ({ scholarship }) => {
   const [isSaved, setIsSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const scholarshipId = scholarship._id || scholarship.id;
+  const scholarshipId = scholarship.id || scholarship.id;
 
   const handleSave = async (e) => {
     e.stopPropagation();

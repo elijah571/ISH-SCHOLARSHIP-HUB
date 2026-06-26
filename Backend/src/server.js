@@ -2,7 +2,9 @@ import 'dotenv/config';
 import http from 'http';
 import { Server } from 'socket.io';
 import { app } from './app.js';
-import { connectDB } from './config/dataBase.js';
+import { connectDB } from './database/index.js';
+// Load all models + associations before connecting
+import './database/models/index.js';
 import { logger } from './utils/logger.js';
 import { initializeChatSocket } from './services/chat.socket.js';
 
@@ -13,8 +15,15 @@ process.on('uncaughtException', (err) => {
 
 const server = http.createServer(app);
 
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,http://localhost:5174')
+  .split(',')
+  .map((o) => o.trim());
+
 const io = new Server(server, {
-  cors: { origin: '*' },
+  cors: {
+    origin: allowedOrigins,
+    credentials: true,
+  },
 });
 
 // Initialize chat socket handlers

@@ -102,7 +102,7 @@ export const ChatWindow = ({ conversationId, adminMode = false }) => {
   };
 
   const handleEditMessage = (message) => {
-    setEditingMessageId(message._id);
+    setEditingMessageId(message.id);
     setMessageText(message.message);
   };
 
@@ -117,7 +117,7 @@ export const ChatWindow = ({ conversationId, adminMode = false }) => {
     setMessageText('');
   };
 
-  const currentUserId = user?.id || user?._id;
+  const currentUserId = user?.id || user?.id;
   const otherPerson = adminMode ? conversation?.participant : conversation?.admin;
   const headerTitle = otherPerson?.fullName || (adminMode ? 'Student conversation' : 'Support team');
   const headerSubtitle = typingUsers.length > 0
@@ -149,8 +149,8 @@ export const ChatWindow = ({ conversationId, adminMode = false }) => {
           </div>
         ) : (
           messages.map((msg) => (
-            <div key={msg._id} className={`message-row ${msg.sender?._id === currentUserId ? 'outgoing' : 'incoming'}`}>
-              <div className={`message ${msg.sender?._id === currentUserId ? 'outgoing' : 'incoming'}`}>
+            <div key={msg.id} className={`message-row ${msg.sender?.id === currentUserId ? 'outgoing' : 'incoming'}`}>
+              <div className={`message ${msg.sender?.id === currentUserId ? 'outgoing' : 'incoming'}`}>
                 <div className="message-content">
                   {msg.isDeleted ? '(Message deleted)' : msg.message}
                 </div>
@@ -173,14 +173,14 @@ export const ChatWindow = ({ conversationId, adminMode = false }) => {
                     <span className="edited-label">edited</span>
                   )}
                   <span className="message-time">{formatTime(msg.createdAt)}</span>
-                  {msg.isRead && msg.sender?._id === currentUserId && <span className="read-indicator">Seen</span>}
+                  {msg.isRead && msg.sender?.id === currentUserId && <span className="read-indicator">Seen</span>}
                 </div>
-                {msg.sender?._id === currentUserId && !msg.isDeleted && (
+                {msg.sender?.id === currentUserId && !msg.isDeleted && (
                   <div className="message-actions">
                     <button onClick={() => handleEditMessage(msg)} title="Edit message">
                       Edit
                     </button>
-                    <button onClick={() => handleDeleteMessage(msg._id)} title="Delete message">
+                    <button onClick={() => handleDeleteMessage(msg.id)} title="Delete message">
                       Delete
                     </button>
                   </div>

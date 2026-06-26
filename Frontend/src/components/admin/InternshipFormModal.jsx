@@ -113,7 +113,7 @@ const InternshipFormModal = ({ isOpen, onClose, onSubmit, internship, loading })
       data.append('image', imageFile);
     }
 
-    onSubmit(data, internship?._id || internship?.id);
+    onSubmit(data, internship?.id || internship?.id);
   };
 
   return (
@@ -122,7 +122,7 @@ const InternshipFormModal = ({ isOpen, onClose, onSubmit, internship, loading })
       onClose={onClose}
       title={isEdit ? 'Edit Internship' : 'Add New Internship'}
       size="lg"
-      key={internship?._id || internship?.id || 'new'}
+      key={internship?.id || internship?.id || 'new'}
       onOpen={initForm}
     >
       <form onSubmit={handleSubmit} className="space-y-5">

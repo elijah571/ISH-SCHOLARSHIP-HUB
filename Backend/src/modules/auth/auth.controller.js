@@ -7,294 +7,205 @@ import {
   resetPasswordService,
   logoutService,
 } from './auth.service.js';
-import { Scholarship } from '../../models/scholarship.js';
-
+import { scholarshipUserRepo } from './auth.repository.js';
+import { scholarshipRepo } from '../scholarship/scholarship.repository.js';
+import { logActivity } from '../admin/admin.service.js';
 import { validateRegistration, validateLogin } from './auth.validation.js';
 import { asyncHandler } from '../../middleware/asyncHandler.js';
 import { AppError } from '../../utils/AppError.js';
 import { logger } from '../../utils/logger.js';
+import { Scholarship } from '../../database/models/index.js';
 
-/* ================= COOKIE OPTIONS ================= */
-const COOKIE_OPTIONS = {
+const COOKIE_OPTS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
   sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   path: '/',
 };
+const SESSION_COOKIE = 'ish_session';
+const SESSION_OPTS = { ...COOKIE_OPTS, httpOnly: false };
 
-const REFRESH_COOKIE_OPTIONS = {
-  ...COOKIE_OPTIONS,
-  path: '/',
-};
-
-const SESSION_COOKIE_NAME = 'ish_session';
-
-const SESSION_COOKIE_OPTIONS = {
-  ...COOKIE_OPTIONS,
-  httpOnly: false,
-};
-
-/* ================= REGISTER ================= */
+/* ─── Register ─────────────────────────────────────────────────────────────── */
 export const registerUser = asyncHandler(async (req, res) => {
   const { error } = validateRegistration(req.body);
-  if (error) {
-    logger.warn('Registration validation failed:', error.details[0].message);
-    throw new AppError(error.details[0].message, 400);
-  }
+  if (error) throw new AppError(error.details[0].message, 400);
 
-  try {
-    const user = await registerUserService(req.body);
-
-    logger.info(`User registered successfully: ${user.email}`);
-    res.status(201).json({
-      success: true,
-      message: 'Registration successful. Please verify your email.',
-      user,
-    });
-  } catch (err) {
-    logger.error('Registration error:', err.message);
-    throw err;
-  }
+  const user = await registerUserService(req.body);
+  res.status(201).json({ success: true, message: 'Registration successful. Please verify your email.', data: user });
 });
 
-/* ================= VERIFY EMAIL ================= */
+/* ─── Verify Email ──────────────────────────────────────────────────────────── */
 export const verifyEmail = asyncHandler(async (req, res) => {
   const { token } = req.query;
   if (!token) throw new AppError('Verification token missing', 400);
-
   await verifyEmailService(token);
-
-  res.status(200).json({
-    success: true,
-    message: 'Email verified successfully',
-  });
+  res.status(200).json({ success: true, message: 'Email verified successfully' });
 });
 
-/* ================= LOGIN ================= */
+/* ─── Login ─────────────────────────────────────────────────────────────────── */
 export const loginUser = asyncHandler(async (req, res) => {
   const { error } = validateLogin(req.body);
-  if (error) {
-    throw new AppError(error.details[0].message, 400);
-  }
+  if (error) throw new AppError(error.details[0].message, 400);
 
   const { accessToken, refreshToken, user } = await loginUserService(req);
 
   res
-    .cookie('refreshToken', refreshToken, {
-      ...REFRESH_COOKIE_OPTIONS,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    })
-    .cookie(SESSION_COOKIE_NAME, '1', {
-      ...SESSION_COOKIE_OPTIONS,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    })
+    .cookie('refreshToken', refreshToken, { ...COOKIE_OPTS, maxAge: 7 * 24 * 60 * 60 * 1000 })
+    .cookie(SESSION_COOKIE, '1', { ...SESSION_OPTS, maxAge: 7 * 24 * 60 * 60 * 1000 })
     .status(200)
-    .json({
-      success: true,
-      accessToken,
-      data: user,
-    });
+    .json({ success: true, accessToken, data: user });
 });
 
-/* ================= REFRESH TOKEN ================= */
+/* ─── Refresh Token ─────────────────────────────────────────────────────────── */
 export const refreshToken = asyncHandler(async (req, res) => {
   const token = req.cookies.refreshToken;
-  if (!token) {
-    throw new AppError('Refresh token missing', 401);
-  }
+  if (!token) throw new AppError('Refresh token missing', 401);
 
   const { accessToken, newRefreshToken } = await refreshTokenService(token);
 
   res
-    .cookie('refreshToken', newRefreshToken, {
-      ...REFRESH_COOKIE_OPTIONS,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    })
-    .cookie(SESSION_COOKIE_NAME, '1', {
-      ...SESSION_COOKIE_OPTIONS,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    })
+    .cookie('refreshToken', newRefreshToken, { ...COOKIE_OPTS, maxAge: 7 * 24 * 60 * 60 * 1000 })
+    .cookie(SESSION_COOKIE, '1', { ...SESSION_OPTS, maxAge: 7 * 24 * 60 * 60 * 1000 })
     .status(200)
-    .json({
-      success: true,
-      accessToken,
-    });
+    .json({ success: true, accessToken });
 });
 
-/* ================= FORGOT PASSWORD ================= */
+/* ─── Forgot Password ───────────────────────────────────────────────────────── */
 export const forgotPassword = asyncHandler(async (req, res) => {
-  const { email } = req.body;
-  if (!email) throw new AppError('Email is required', 400);
-
-  await forgotPasswordService(email);
-
-  res.status(200).json({
-    success: true,
-    message: 'If the email exists, a reset link has been sent',
-  });
+  if (!req.body.email) throw new AppError('Email is required', 400);
+  await forgotPasswordService(req.body.email);
+  res.status(200).json({ success: true, message: 'If the email exists, a reset link has been sent' });
 });
 
-/* ================= RESET PASSWORD ================= */
+/* ─── Reset Password ────────────────────────────────────────────────────────── */
 export const resetPassword = asyncHandler(async (req, res) => {
   const { token } = req.params;
   const { password } = req.body;
-
   if (!password) throw new AppError('New password is required', 400);
-
   await resetPasswordService(token, password);
-
-  res.status(200).json({
-    success: true,
-    message: 'Password reset successful',
-  });
+  res.status(200).json({ success: true, message: 'Password reset successful' });
 });
 
-/* ================= LOGOUT (SINGLE SESSION) ================= */
+/* ─── Logout ────────────────────────────────────────────────────────────────── */
 export const logout = asyncHandler(async (req, res) => {
   const token = req.cookies.refreshToken;
-
-  if (token) {
-    await logoutService(req.user._id, token);
-  }
+  if (token) await logoutService(req.user.id, token);
 
   res
-    .clearCookie('refreshToken', REFRESH_COOKIE_OPTIONS)
-    .clearCookie(SESSION_COOKIE_NAME, SESSION_COOKIE_OPTIONS)
-    .json({
-      success: true,
-      message: 'Logged out successfully',
-    });
+    .clearCookie('refreshToken', COOKIE_OPTS)
+    .clearCookie(SESSION_COOKIE, SESSION_OPTS)
+    .json({ success: true, message: 'Logged out successfully' });
 });
 
-/* ================= LOGOUT ALL DEVICES ================= */
+/* ─── Logout All Devices ────────────────────────────────────────────────────── */
 export const logoutAll = asyncHandler(async (req, res) => {
-  req.user.sessions = [];
-  await req.user.save();
+  const { userRepo } = await import('./auth.repository.js');
+  await userRepo.deleteAllSessions(req.user.id);
 
   res
-    .clearCookie('refreshToken', COOKIE_OPTIONS)
-    .clearCookie(SESSION_COOKIE_NAME, SESSION_COOKIE_OPTIONS)
-    .json({
-      success: true,
-      message: 'Logged out from all devices',
-    });
+    .clearCookie('refreshToken', COOKIE_OPTS)
+    .clearCookie(SESSION_COOKIE, SESSION_OPTS)
+    .json({ success: true, message: 'Logged out from all devices' });
 });
 
-/* ================= SAVE SCHOLARSHIP ================= */
+/* ─── Save Scholarship ──────────────────────────────────────────────────────── */
 export const saveScholarship = asyncHandler(async (req, res) => {
   const scholarshipId = req.params.id;
-  const scholarship = await Scholarship.findById(scholarshipId);
-  if (!scholarship) {
-    throw new AppError('Scholarship not found', 404);
-  }
+  const userId = req.user.id;
 
-  const user = req.user;
-  const isAlreadySaved = user.savedScholarships.some(
-    (s) => s._id?.toString() === scholarshipId || s.toString() === scholarshipId
-  );
+  const scholarship = await scholarshipRepo.findById(scholarshipId);
+  if (!scholarship) throw new AppError('Scholarship not found', 404);
 
-  if (isAlreadySaved) {
-    throw new AppError('Scholarship already saved', 400);
-  }
+  const existing = await scholarshipUserRepo.findSavedOne(userId, scholarshipId);
+  if (existing) throw new AppError('Scholarship already saved', 400);
 
-  user.savedScholarships.push(scholarshipId);
-  await user.save();
+  await scholarshipUserRepo.save(userId, scholarshipId);
 
-  res.status(200).json({
-    success: true,
-    message: 'Scholarship saved successfully',
+  logActivity({
+    userId, userName: req.user.fullName, userEmail: req.user.email,
+    action: 'saved', targetType: 'scholarship', targetId: scholarshipId, targetTitle: scholarship.title,
   });
+
+  res.status(200).json({ success: true, message: 'Scholarship saved successfully' });
 });
 
-/* ================= UNSAVE SCHOLARSHIP ================= */
+/* ─── Unsave Scholarship ────────────────────────────────────────────────────── */
 export const unsaveScholarship = asyncHandler(async (req, res) => {
   const scholarshipId = req.params.id;
-  const user = req.user;
+  const userId = req.user.id;
 
-  const savedId = user.savedScholarships.find(
-    (s) => s._id?.toString() === scholarshipId || s.toString() === scholarshipId
-  );
+  const existing = await scholarshipUserRepo.findSavedOne(userId, scholarshipId);
+  if (!existing) throw new AppError('Scholarship not in saved list', 400);
 
-  if (!savedId) {
-    throw new AppError('Scholarship not in saved list', 400);
-  }
+  await scholarshipUserRepo.unsave(userId, scholarshipId);
 
-  user.savedScholarships = user.savedScholarships.filter(
-    (s) => s._id?.toString() !== scholarshipId && s.toString() !== scholarshipId
-  );
-  await user.save();
-
-  res.status(200).json({
-    success: true,
-    message: 'Scholarship removed from saved',
-  });
+  res.status(200).json({ success: true, message: 'Scholarship removed from saved' });
 });
 
-/* ================= MARK AS APPLIED ================= */
+/* ─── Mark As Applied ───────────────────────────────────────────────────────── */
 export const markAsApplied = asyncHandler(async (req, res) => {
   const scholarshipId = req.params.id;
-  const scholarship = await Scholarship.findById(scholarshipId);
-  if (!scholarship) {
-    throw new AppError('Scholarship not found', 404);
-  }
+  const userId = req.user.id;
 
-  const user = req.user;
-  const isAlreadyApplied = user.appliedScholarships.some(
-    (a) => a.scholarship?.toString() === scholarshipId
-  );
+  const scholarship = await scholarshipRepo.findById(scholarshipId);
+  if (!scholarship) throw new AppError('Scholarship not found', 404);
 
-  if (isAlreadyApplied) {
-    throw new AppError('Already applied to this scholarship', 400);
-  }
+  const existing = await scholarshipUserRepo.findAppliedOne(userId, scholarshipId);
+  if (existing) throw new AppError('Already applied to this scholarship', 400);
 
-  user.appliedScholarships.push({ scholarship: scholarshipId });
-  await user.save();
+  await scholarshipUserRepo.apply(userId, scholarshipId);
 
-  res.status(200).json({
-    success: true,
-    message: 'Marked as applied',
+  logActivity({
+    userId, userName: req.user.fullName, userEmail: req.user.email,
+    action: 'applied', targetType: 'scholarship', targetId: scholarshipId, targetTitle: scholarship.title,
   });
+
+  res.status(200).json({ success: true, message: 'Marked as applied' });
 });
 
-/* ================= GET SAVED SCHOLARSHIPS ================= */
+/* ─── Get Saved Scholarships ────────────────────────────────────────────────── */
 export const getSavedScholarships = asyncHandler(async (req, res) => {
-  const user = await req.user.populate({
-    path: 'savedScholarships',
-    model: 'Scholarship',
-  });
+  const saved = await scholarshipUserRepo.findSaved(req.user.id);
+  const ids = saved.map((s) => s.scholarshipId);
 
-  res.status(200).json({
-    success: true,
-    data: user.savedScholarships,
-  });
+  const scholarships = ids.length
+    ? await Scholarship.findAll({ where: { id: ids } })
+    : [];
+
+  res.status(200).json({ success: true, data: scholarships });
 });
 
-/* ================= GET APPLIED SCHOLARSHIPS ================= */
+/* ─── Get Applied Scholarships ──────────────────────────────────────────────── */
 export const getAppliedScholarships = asyncHandler(async (req, res) => {
-  const user = await req.user.populate({
-    path: 'appliedScholarships.scholarship',
-    model: 'Scholarship',
-  });
+  const applied = await scholarshipUserRepo.findApplied(req.user.id);
+  const ids = applied.map((a) => a.scholarshipId);
 
-  res.status(200).json({
-    success: true,
-    data: user.appliedScholarships,
-  });
+  const scholarships = ids.length
+    ? await Scholarship.findAll({ where: { id: ids } })
+    : [];
+
+  const result = applied.map((a) => ({
+    scholarship: scholarships.find((s) => s.id === a.scholarshipId),
+    appliedAt: a.appliedAt,
+  }));
+
+  res.status(200).json({ success: true, data: result });
 });
 
-/* ================= GET PROFILE ================= */
+/* ─── Get Profile ───────────────────────────────────────────────────────────── */
 export const getProfile = asyncHandler(async (req, res) => {
-  const user = req.user;
+  const [savedCount, appliedCount] = await Promise.all([
+    scholarshipUserRepo.findSaved(req.user.id).then((r) => r.length),
+    scholarshipUserRepo.findApplied(req.user.id).then((r) => r.length),
+  ]);
+
   res.status(200).json({
     success: true,
     data: {
-      id: user._id,
-      fullName: user.fullName,
-      email: user.email,
-      role: user.role,
-      isEmailVerified: user.isEmailVerified,
-      savedCount: user.savedScholarships.length,
-      appliedCount: user.appliedScholarships.length,
+      id: req.user.id, fullName: req.user.fullName,
+      email: req.user.email, role: req.user.role,
+      isEmailVerified: req.user.isEmailVerified,
+      savedCount, appliedCount,
     },
   });
 });

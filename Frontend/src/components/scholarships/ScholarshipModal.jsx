@@ -105,7 +105,7 @@ const ScholarshipModal = ({ isOpen, onClose, onSubmit, scholarship, loading }) =
       data.append('image', imageFile);
     }
 
-    onSubmit(data, scholarship?._id || scholarship?.id);
+    onSubmit(data, scholarship?.id || scholarship?.id);
   };
 
   return (
@@ -114,7 +114,7 @@ const ScholarshipModal = ({ isOpen, onClose, onSubmit, scholarship, loading }) =
       onClose={onClose}
       title={isEdit ? 'Edit Scholarship' : 'Add New Scholarship'}
       size="lg"
-      key={scholarship?._id || scholarship?.id || 'new'}
+      key={scholarship?.id || scholarship?.id || 'new'}
       onOpen={initForm}
     >
       <form onSubmit={handleSubmit} className="space-y-5">

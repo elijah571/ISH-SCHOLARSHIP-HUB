@@ -102,7 +102,7 @@ export const ScholarshipProvider = ({ children }) => {
     setError(null);
     try {
       await scholarshipService.delete(id);
-      setScholarships((prev) => prev.filter((s) => s._id !== id));
+      setScholarships((prev) => prev.filter((s) => s.id !== id));
       return { success: true };
     } catch (err) {
       const message = err.response?.data?.message || 'Failed to delete scholarship';

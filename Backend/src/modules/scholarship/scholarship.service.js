@@ -1,195 +1,94 @@
-import { Scholarship } from '../../models/scholarship.js';
+import { scholarshipRepo } from './scholarship.repository.js';
 import { uploadsToCloudinary, deleteFromCloudinary } from '../../config/cloudinary.js';
 import { AppError } from '../../utils/AppError.js';
 import { logActivity } from '../admin/admin.service.js';
 
-export const createScholarshipService = async ({
-  title,
-  description,
-  country,
-  duration,
-  link,
-  deadline,
-  funding_type,
-  image,
-  createdBy,
-}) => {
-  let uploadedImage = null;
-
-  if (image) {
-    uploadedImage = await uploadsToCloudinary(image.buffer, 'scholarships');
-  }
-
-  const scholarship = await Scholarship.create({
-    title,
-    description,
-    country,
-    deadline,
-    funding_type,
-    link: link || undefined,
-    duration: duration || undefined,
-    image: uploadedImage
-      ? {
-          url: uploadedImage.secure_url,
-          publicId: uploadedImage.public_id,
-        }
-      : undefined,
-    createdBy,
-  });
-
-  if (!scholarship) {
-    throw new AppError('Failed to create scholarship', 500);
-  }
-
-  const creator = await import('../../models/user.model.js').then((m) =>
-    m.User.findById(createdBy).lean()
-  );
-  await logActivity({
-    user: creator || { _id: createdBy, fullName: 'Admin', email: '' },
-    action: 'scholarship_created',
-    targetType: 'scholarship',
-    targetId: scholarship._id,
-    targetTitle: scholarship.title,
-  });
-
-  return scholarship;
-};
-
-/* ===================== GET COUNTRIES ===================== */
-export const getCountriesService = async () => {
-  const countries = await Scholarship.aggregate([
-    { $group: { _id: '$country', count: { $sum: 1 } } },
-    { $match: { _id: { $ne: null, $ne: '' } } },
-    { $sort: { count: -1, _id: 1 } },
-    { $project: { name: '$_id', count: 1, _id: 0 } },
-  ]);
-  return countries;
-};
-
-/* ===================== GET ALL (SEARCH + FILTER + PAGINATION) ===================== */
-export const getScholarshipsService = async ({
-  page = 1,
-  limit = 10,
-  search,
-  country,
-  funding_type,
-  deadline,
-  field_of_study,
-  location,
-  university,
-  tuition_fees,
-  format,
-  attendance,
-  degree_type,
-  special_programme,
-}) => {
-  const parsedPage = Math.max(Number(page) || 1, 1);
-  const parsedLimit = Math.max(Number(limit) || 10, 1);
-  const query = {};
-
-  // 🔍 Text search
-  if (search) {
-    query.$text = { $search: search };
-  }
-
-  // 🎯 Filters
-  if (country) query.country = country;
-  if (funding_type) query.funding_type = funding_type;
-  if (deadline) query.deadline = { $gte: new Date(deadline) };
-  if (field_of_study) query.field_of_study = field_of_study;
-  if (location) query.location = location;
-  if (university) query.university = university;
-  if (tuition_fees) query.tuition_fees = tuition_fees;
-  if (format) query.format = format;
-  if (attendance) query.attendance = attendance;
-  if (degree_type) query.degree_type = degree_type;
-  if (special_programme) query.special_programme = special_programme;
-
-  const skip = (parsedPage - 1) * parsedLimit;
-
-  const [scholarships, total] = await Promise.all([
-    Scholarship.find(query).sort({ createdAt: -1 }).skip(skip).limit(parsedLimit),
-    Scholarship.countDocuments(query),
-  ]);
-
-  return {
-    total,
-    page: parsedPage,
-    limit: parsedLimit,
-    pages: Math.ceil(total / parsedLimit),
-    scholarships,
-  };
-};
-
-/* ===================== GET ONE ===================== */
-export const getScholarshipByIdService = async (id) => {
-  const scholarship = await Scholarship.findById(id);
-  if (!scholarship) throw new AppError('Scholarship not found', 404);
-  return scholarship;
-};
-
-/* ===================== UPDATE ===================== */
-export const updateScholarshipService = async (id, data) => {
-  const scholarship = await Scholarship.findById(id);
-  if (!scholarship) throw new AppError('Scholarship not found', 404);
-
-  // 🖼 Replace image if provided
+export const createScholarshipService = async (data, createdByUser) => {
+  let imageUrl, imagePublicId;
   if (data.image) {
-    if (scholarship.image?.publicId) {
-      await deleteFromCloudinary(scholarship.image.publicId);
-    }
-
     const uploaded = await uploadsToCloudinary(data.image.buffer, 'scholarships');
-
-    data.image = {
-      url: uploaded.secure_url,
-      publicId: uploaded.public_id,
-    };
+    imageUrl = uploaded.secure_url;
+    imagePublicId = uploaded.public_id;
   }
 
-  // 🔥 Only assign defined fields
-  for (const key of Object.keys(data)) {
-    if (data[key] !== undefined) {
-      scholarship[key] = data[key];
-    }
-  }
+  const scholarship = await scholarshipRepo.create({
+    title: data.title, description: data.description, country: data.country,
+    duration: data.duration, link: data.link,
+    deadline: new Date(data.deadline),
+    fundingType: data.funding_type,
+    fieldOfStudy: data.fieldOfStudy, location: data.location,
+    university: data.university, tuitionFees: data.tuitionFees,
+    format: data.format, attendance: data.attendance,
+    degreeType: data.degreeType, specialProgramme: data.specialProgramme,
+    imageUrl, imagePublicId,
+    createdById: createdByUser.id,
+  });
 
-  await scholarship.save();
-
-  const creator = await import('../../models/user.model.js').then((m) =>
-    m.User.findById(scholarship.createdBy).lean()
-  );
-  await logActivity({
-    user: creator || { _id: scholarship.createdBy, fullName: 'Admin', email: '' },
-    action: 'scholarship_updated',
-    targetType: 'scholarship',
-    targetId: scholarship._id,
-    targetTitle: scholarship.title,
+  logActivity({
+    userId: createdByUser.id, userName: createdByUser.fullName, userEmail: createdByUser.email,
+    action: 'scholarship_created', targetType: 'scholarship',
+    targetId: scholarship.id, targetTitle: scholarship.title,
   });
 
   return scholarship;
 };
 
-/* ===================== DELETE ===================== */
-export const deleteScholarshipService = async (id) => {
-  const scholarship = await Scholarship.findById(id);
+export const getCountriesService = () => scholarshipRepo.getCountries();
+
+export const getScholarshipsService = (params) => scholarshipRepo.findAll(params);
+
+export const getScholarshipByIdService = async (id) => {
+  const s = await scholarshipRepo.findById(id);
+  if (!s) throw new AppError('Scholarship not found', 404);
+  return s;
+};
+
+export const updateScholarshipService = async (id, data, updatingUser) => {
+  const scholarship = await scholarshipRepo.findById(id);
   if (!scholarship) throw new AppError('Scholarship not found', 404);
 
-  if (scholarship.image?.publicId) {
-    await deleteFromCloudinary(scholarship.image.publicId);
+  const updateData = {};
+
+  if (data.image) {
+    if (scholarship.imagePublicId) await deleteFromCloudinary(scholarship.imagePublicId).catch(() => {});
+    const uploaded = await uploadsToCloudinary(data.image.buffer, 'scholarships');
+    updateData.imageUrl = uploaded.secure_url;
+    updateData.imagePublicId = uploaded.public_id;
   }
 
-  const title = scholarship.title;
-  const creator = await import('../../models/user.model.js').then((m) =>
-    m.User.findById(scholarship.createdBy).lean()
-  );
-  await scholarship.deleteOne();
+  const fieldMap = {
+    title: 'title', description: 'description', country: 'country', duration: 'duration',
+    link: 'link', funding_type: 'fundingType', fieldOfStudy: 'fieldOfStudy', location: 'location',
+    university: 'university', tuitionFees: 'tuitionFees', format: 'format',
+    attendance: 'attendance', degreeType: 'degreeType', specialProgramme: 'specialProgramme',
+  };
 
-  await logActivity({
-    user: creator || { _id: scholarship.createdBy, fullName: 'Admin', email: '' },
-    action: 'scholarship_deleted',
-    targetType: 'scholarship',
-    targetId: id,
-    targetTitle: title,
+  for (const [src, dest] of Object.entries(fieldMap)) {
+    if (data[src] !== undefined) updateData[dest] = data[src];
+  }
+  if (data.deadline !== undefined) updateData.deadline = new Date(data.deadline);
+
+  const updated = await scholarshipRepo.update(id, updateData);
+
+  logActivity({
+    userId: updatingUser.id, userName: updatingUser.fullName, userEmail: updatingUser.email,
+    action: 'scholarship_updated', targetType: 'scholarship',
+    targetId: id, targetTitle: updated?.title || scholarship.title,
+  });
+
+  return updated || scholarship;
+};
+
+export const deleteScholarshipService = async (id, deletingUser) => {
+  const scholarship = await scholarshipRepo.findById(id);
+  if (!scholarship) throw new AppError('Scholarship not found', 404);
+
+  if (scholarship.imagePublicId) await deleteFromCloudinary(scholarship.imagePublicId).catch(() => {});
+  await scholarshipRepo.delete(id);
+
+  logActivity({
+    userId: deletingUser.id, userName: deletingUser.fullName, userEmail: deletingUser.email,
+    action: 'scholarship_deleted', targetType: 'scholarship',
+    targetId: id, targetTitle: scholarship.title,
   });
 };

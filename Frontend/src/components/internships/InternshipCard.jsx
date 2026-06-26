@@ -10,7 +10,7 @@ const InternshipCard = ({ internship }) => {
   const [isSaved, setIsSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const internshipId = internship._id || internship.id;
+  const internshipId = internship.id || internship.id;
 
   const handleSave = async (e) => {
     e.preventDefault();

@@ -184,7 +184,7 @@ const ScholarshipCard = ({
             href={scholarship.link}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => onApply?.(scholarship._id)}
+            onClick={() => onApply?.(scholarship.id)}
             disabled={isDeadlinePassed}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium transition-colors ${
               isDeadlinePassed
@@ -199,7 +199,7 @@ const ScholarshipCard = ({
 
         {showUnsave && (
           <button
-            onClick={() => onUnsave?.(scholarship._id)}
+            onClick={() => onUnsave?.(scholarship.id)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium text-red-600 hover:bg-red-50 transition-colors"
           >
             <TrashIcon />
@@ -208,7 +208,7 @@ const ScholarshipCard = ({
         )}
 
         <Link
-          to={`/scholarships/${scholarship._id}`}
+          to={`/scholarships/${scholarship.id}`}
           className="ml-auto text-[13px] text-blue-600 hover:underline"
         >
           View Details
@@ -277,7 +277,7 @@ const DashboardPage = () => {
   const handleUnsave = async (scholarshipId) => {
     try {
       await userService.unsaveScholarship(scholarshipId);
-      setSavedScholarships((prev) => prev.filter((s) => s._id !== scholarshipId));
+      setSavedScholarships((prev) => prev.filter((s) => s.id !== scholarshipId));
       toast.success('Scholarship removed from saved list.');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to remove scholarship.');
@@ -287,9 +287,9 @@ const DashboardPage = () => {
   const handleApply = async (scholarshipId) => {
     try {
       await userService.markAsApplied(scholarshipId);
-      const scholarship = savedScholarships.find((s) => s._id === scholarshipId);
+      const scholarship = savedScholarships.find((s) => s.id === scholarshipId);
       if (scholarship) {
-        setSavedScholarships((prev) => prev.filter((s) => s._id !== scholarshipId));
+        setSavedScholarships((prev) => prev.filter((s) => s.id !== scholarshipId));
         setAppliedScholarships((prev) => [
           {
             scholarship,
@@ -360,7 +360,7 @@ const DashboardPage = () => {
                 <div className="space-y-3">
                   {appliedScholarships.slice(0, 3).map((app) => (
                     <ScholarshipCard
-                      key={app._id}
+                      key={app.id}
                       scholarship={app.scholarship}
                       appliedAt={app.appliedAt}
                       showApply={true}
@@ -399,7 +399,7 @@ const DashboardPage = () => {
                 <div className="space-y-3">
                   {savedScholarships.slice(0, 3).map((scholarship) => (
                     <ScholarshipCard
-                      key={scholarship._id}
+                      key={scholarship.id}
                       scholarship={scholarship}
                       showApply={true}
                       showUnsave={true}
@@ -439,7 +439,7 @@ const DashboardPage = () => {
               <div className="space-y-3">
                 {appliedScholarships.map((app) => (
                   <ScholarshipCard
-                    key={app._id}
+                    key={app.id}
                     scholarship={app.scholarship}
                     appliedAt={app.appliedAt}
                     showApply={true}
@@ -478,7 +478,7 @@ const DashboardPage = () => {
               <div className="space-y-3">
                 {savedScholarships.map((scholarship) => (
                   <ScholarshipCard
-                    key={scholarship._id}
+                    key={scholarship.id}
                     scholarship={scholarship}
                     showApply={true}
                     showUnsave={true}

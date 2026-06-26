@@ -49,7 +49,7 @@ const InternshipList = ({ internships, loading, error, onRetry }) => {
     <div className="space-y-4">
       {internships.map((internship) => (
         <InternshipCard
-          key={internship._id || internship.id}
+          key={internship.id || internship.id}
           internship={internship}
         />
       ))}

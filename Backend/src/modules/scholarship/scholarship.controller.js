@@ -21,10 +21,10 @@ export const createScholarshipController = asyncHandler(async (req, res) => {
 
   // Call service
 
-  const scholarship = await createScholarshipService({
-    ...validatedData,
-    createdBy: req.user._id,
-  });
+  const scholarship = await createScholarshipService(
+    { ...validatedData, image: req.file },
+    req.user
+  );
 
   res.status(201).json({
     success: true,
@@ -76,14 +76,14 @@ export const updateScholarshipController = asyncHandler(async (req, res) => {
 
   const validatedData = dto.validate();
 
-  const scholarship = await updateScholarshipService(req.params.id, validatedData);
+  const scholarship = await updateScholarshipService(req.params.id, { ...validatedData, image: req.file }, req.user);
 
   res.status(200).json({ success: true, data: scholarship });
 });
 
 /* ===================== DELETE ===================== */
 export const deleteScholarshipController = asyncHandler(async (req, res) => {
-  await deleteScholarshipService(req.params.id);
+  await deleteScholarshipService(req.params.id, req.user);
 
   res.status(200).json({
     success: true,

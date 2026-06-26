@@ -55,11 +55,11 @@ export const ConversationList = ({
 
       if (loadedConversations.length > 0) {
         const selectedStillExists = loadedConversations.some(
-          (conversation) => conversation._id === selectedConversationId
+          (conversation) => conversation.id === selectedConversationId
         );
 
         if (!selectedConversationId || !selectedStillExists) {
-          onSelectConversation(loadedConversations[0]._id);
+          onSelectConversation(loadedConversations[0].id);
         }
         return loadedConversations;
       }
@@ -67,7 +67,7 @@ export const ConversationList = ({
       if (!adminMode && !hasBootstrappedConversation.current) {
         hasBootstrappedConversation.current = true;
         const bootstrapResponse = await chatService.createOrGetConversation(null, 'Admin Support');
-        const bootstrapConversationId = bootstrapResponse.data.data?._id;
+        const bootstrapConversationId = bootstrapResponse.data.data?.id;
 
         if (bootstrapConversationId) {
           onSelectConversation(bootstrapConversationId);
@@ -124,7 +124,7 @@ export const ConversationList = ({
       setConversations(searchedConversations);
 
       if (searchedConversations.length > 0 && !selectedConversationId) {
-        onSelectConversation(searchedConversations[0]._id);
+        onSelectConversation(searchedConversations[0].id);
       }
     } catch (err) {
       console.error('Error searching conversations:', err);
@@ -137,7 +137,7 @@ export const ConversationList = ({
       const response = await chatService.createOrGetConversation(null, newSubject.trim());
       setShowNewModal(false);
       setNewSubject('');
-      onSelectConversation(response.data.data._id);
+      onSelectConversation(response.data.data.id);
       await loadConversations();
     } catch (err) {
       console.error('Error creating conversation:', err);
@@ -189,9 +189,9 @@ export const ConversationList = ({
 
             return (
             <div
-              key={conv._id}
-              className={`conversation-item ${selectedConversationId === conv._id ? 'active' : ''}`}
-              onClick={() => onSelectConversation(conv._id)}
+              key={conv.id}
+              className={`conversation-item ${selectedConversationId === conv.id ? 'active' : ''}`}
+              onClick={() => onSelectConversation(conv.id)}
             >
               <div className="conversation-avatar">{avatarText}</div>
               <div className="conversation-body">

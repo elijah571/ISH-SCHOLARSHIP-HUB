@@ -21,6 +21,7 @@ export const ChatProvider = ({ children }) => {
   const isAuthenticatedRef = useRef(false);
 
   useEffect(() => {
+    if (!user) return;
     if (socketRef.current) return;
 
     const newSocket = io(SOCKET_URL, {
@@ -64,7 +65,7 @@ export const ChatProvider = ({ children }) => {
         type: 'message',
       });
       setMessages((prev) => {
-        if (prev.some((msg) => msg._id === data._id)) {
+        if (prev.some((msg) => msg.id === data.id)) {
           return prev;
         }
         return [...prev, data];
@@ -74,13 +75,13 @@ export const ChatProvider = ({ children }) => {
     newSocket.on('message_edited', (data) => {
       setMessages((prev) =>
         prev.map((msg) =>
-          msg._id === data.messageId ? { ...msg, message: data.newMessage, editedAt: data.editedAt } : msg
+          msg.id === data.messageId ? { ...msg, message: data.newMessage, editedAt: data.editedAt } : msg
         )
       );
     });
 
     newSocket.on('message_deleted', (data) => {
-      setMessages((prev) => prev.filter((msg) => msg._id !== data.messageId));
+      setMessages((prev) => prev.filter((msg) => msg.id !== data.messageId));
     });
 
     newSocket.on('user_typing', (data) => {
@@ -106,7 +107,7 @@ export const ChatProvider = ({ children }) => {
 
     newSocket.on('conversation_updated', (data) => {
       setLatestConversationActivity({
-        conversationId: data._id,
+        conversationId: data.id,
         sender: data.participant?.fullName || data.admin?.fullName || 'Unknown',
         message: data.lastMessage || data.subject || '',
         timestamp: Date.now(),
@@ -146,7 +147,7 @@ export const ChatProvider = ({ children }) => {
       socketRef.current = null;
       isAuthenticatedRef.current = false;
     };
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     const token = getAccessToken();

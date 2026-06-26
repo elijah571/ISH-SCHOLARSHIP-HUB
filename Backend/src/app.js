@@ -2,6 +2,9 @@ import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import compression from 'compression';
+import { randomUUID } from 'crypto';
+import { apiLimiter } from './middleware/rateLimiter.js';
 
 import { setSecurityHeaders, csrfProtection } from './middleware/security.js';
 import authRoutes from './modules/auth/auth.routes.js';
@@ -19,7 +22,9 @@ import chatRoutes from './modules/chat/chat.routes.js';
 
 export const app = express();
 
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174'];
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,http://localhost:5174')
+  .split(',')
+  .map((o) => o.trim());
 
 const corsOptions = {
   origin: function (origin, callback) {
@@ -32,11 +37,20 @@ const corsOptions = {
   credentials: true,
 };
 
+// Request ID for tracing
+app.use((req, _res, next) => {
+  req.requestId = req.headers['x-request-id'] || randomUUID();
+  next();
+});
+
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(compression());
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.use(cookieParser());
 app.use(helmet());
 app.use(setSecurityHeaders);
+app.use('/api', apiLimiter);
 
 app.use(csrfProtection);
 
@@ -50,11 +64,25 @@ app.use((req, res, next) => {
   next();
 });
 
-// ✅ Logger middleware
+const SENSITIVE_KEYS = new Set(['password', 'token', 'refreshToken', 'accessToken', 'secret']);
+const redactBody = (body) => {
+  if (!body || typeof body !== 'object') return body;
+  const redacted = { ...body };
+  for (const key of Object.keys(redacted)) {
+    if (SENSITIVE_KEYS.has(key)) redacted[key] = '[REDACTED]';
+  }
+  return redacted;
+};
+
+// Health check (no auth, no CSRF, no rate limit)
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok', uptime: process.uptime(), timestamp: new Date().toISOString() });
+});
+
 app.use((req, res, next) => {
-  logger.info(` ${req.method} ${req.url}`);
+  logger.info(`[${req.requestId}] ${req.method} ${req.url}`);
   if (req.body && Object.keys(req.body).length > 0) {
-    logger.info(`Body: ${JSON.stringify(req.body)}`);
+    logger.debug(`Body: ${JSON.stringify(redactBody(req.body))}`);
   }
   next();
 });

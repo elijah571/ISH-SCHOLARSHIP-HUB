@@ -14,7 +14,7 @@ const DeleteConfirmModal = ({ isOpen, onClose, item, onSuccess, itemType = 'item
   const [error, setError] = useState(null);
 
   const handleDelete = async () => {
-    if (!item?._id) return;
+    if (!item?.id) return;
     
     setLoading(true);
     setError(null);
@@ -23,7 +23,7 @@ const DeleteConfirmModal = ({ isOpen, onClose, item, onSuccess, itemType = 'item
       if (deleteEndpoint) {
         await api.delete(deleteEndpoint);
       } else {
-        await api.delete(`/api/blog/${item._id}`);
+        await api.delete(`/api/blog/${item.id}`);
       }
       onSuccess();
       onClose();

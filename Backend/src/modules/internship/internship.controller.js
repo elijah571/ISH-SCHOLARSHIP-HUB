@@ -20,10 +20,7 @@ export const createInternshipController = asyncHandler(async (req, res) => {
 
   // Call service
 
-  const internship = await createInternshipService({
-    ...validatedData,
-    createdBy: req.user._id,
-  });
+  const internship = await createInternshipService({ ...validatedData, image: req.file }, req.user);
 
   res.status(201).json({
     success: true,
@@ -60,14 +57,14 @@ export const updateInternshipController = asyncHandler(async (req, res) => {
 
   const validatedData = dto.validate();
 
-  const scholarship = await updateInternshipService(req.params.id, validatedData);
+  const scholarship = await updateInternshipService(req.params.id, { ...validatedData, image: req.file }, req.user);
 
   res.status(200).json({ success: true, data: scholarship });
 });
 
 /* ===================== DELETE ===================== */
 export const deleteInternshipController = asyncHandler(async (req, res) => {
-  await deleteInternshipService(req.params.id);
+  await deleteInternshipService(req.params.id, req.user);
 
   res.status(200).json({
     success: true,

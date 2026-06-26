@@ -17,11 +17,7 @@ export const createBlogController = asyncHandler(async (req, res) => {
 
   const validatedData = dto.validate();
 
-  const blog = await createBlogService({
-    ...validatedData,
-    published: validatedData.published,
-    createdBy: req.user._id,
-  });
+  const blog = await createBlogService({ ...validatedData, image: req.file }, req.user);
 
   res.status(201).json({
     success: true,
@@ -66,10 +62,7 @@ export const updateBlogController = asyncHandler(async (req, res) => {
 
   const validatedData = dto.validate();
 
-  const blog = await updateBlogService(req.params.id, {
-    ...validatedData,
-    published: validatedData.published,
-  });
+  const blog = await updateBlogService(req.params.id, { ...validatedData, image: req.file }, req.user);
 
   res.status(200).json({
     success: true,
@@ -79,7 +72,7 @@ export const updateBlogController = asyncHandler(async (req, res) => {
 
 /* ===================== DELETE BLOG ===================== */
 export const deleteBlogController = asyncHandler(async (req, res) => {
-  await deleteBlogService(req.params.id);
+  await deleteBlogService(req.params.id, req.user);
 
   res.status(200).json({
     success: true,

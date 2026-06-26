@@ -30,11 +30,13 @@ const CountryDropdown = ({ isMobile = false }) => {
     }
   }, [isMobile]);
 
-  const countryItems = countries.map((c) => ({
-    name: c.name,
-    slug: nameToSlug(c.name),
-    count: c.count,
-  }));
+  const countryItems = countries
+    .filter((c) => c.country)
+    .map((c) => ({
+      name: c.country,
+      slug: nameToSlug(c.country),
+      count: c.count,
+    }));
 
   if (isMobile) {
     return (

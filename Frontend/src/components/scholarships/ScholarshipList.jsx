@@ -49,7 +49,7 @@ const ScholarshipList = ({ scholarships, loading, error, onRetry }) => {
     <div className="space-y-4">
       {scholarships.map((scholarship) => (
         <ScholarshipCard
-          key={scholarship._id || scholarship.id}
+          key={scholarship.id || scholarship.id}
           scholarship={scholarship}
         />
       ))}

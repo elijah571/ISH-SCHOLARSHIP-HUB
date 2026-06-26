@@ -38,7 +38,7 @@ export const ScholarshipsTab = () => {
   };
 
   const handleView = (scholarship) => {
-    window.open(`/scholarships/${scholarship._id || scholarship.id}`, '_blank');
+    window.open(`/scholarships/${scholarship.id || scholarship.id}`, '_blank');
   };
 
   const handleFormSubmit = async (formData, id) => {
@@ -64,7 +64,7 @@ export const ScholarshipsTab = () => {
   const handleDeleteConfirm = async () => {
     if (!selectedScholarship) return;
     setDeleting(true);
-    const result = await deleteScholarship(selectedScholarship._id || selectedScholarship.id);
+    const result = await deleteScholarship(selectedScholarship.id || selectedScholarship.id);
     setDeleting(false);
     
     if (result.success) {
@@ -155,7 +155,7 @@ export const ScholarshipsTab = () => {
                   </tr>
                 ) : (
                   filteredScholarships.map((scholarship) => (
-                    <tr key={scholarship._id || scholarship.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <tr key={scholarship.id || scholarship.id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="px-4 py-3.5">
                         <span className="font-medium text-gray-800">{scholarship.title}</span>
                       </td>

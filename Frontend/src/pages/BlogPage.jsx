@@ -50,8 +50,8 @@ const BlogPage = () => {
       : '5 min read';
 
     return {
-      _id: blog._id,
-      id: blog._id,
+      _id: blog.id,
+      id: blog.id,
       title: blog.title,
       excerpt,
       author: { name: blog.createdBy?.name || blog.createdBy?.email || 'Admin' },

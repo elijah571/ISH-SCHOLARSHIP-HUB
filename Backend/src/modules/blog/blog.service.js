@@ -1,157 +1,73 @@
+import { blogRepo } from './blog.repository.js';
 import { uploadsToCloudinary, deleteFromCloudinary } from '../../config/cloudinary.js';
 import { AppError } from '../../utils/AppError.js';
-import { Blog } from '../../models/blog.model.js';
 import { logActivity } from '../admin/admin.service.js';
 
-/* ===================== CREATE BLOG ===================== */
-export const createBlogService = async ({ title, content, slug, image, published, createdBy }) => {
-  let uploadedImage = null;
-
-  // Upload image if provided
+export const createBlogService = async ({ title, content, slug, image, published }, createdByUser) => {
+  let imageUrl, imagePublicId;
   if (image) {
-    uploadedImage = await uploadsToCloudinary(image.buffer, 'blogs');
+    const uploaded = await uploadsToCloudinary(image.buffer, 'blogs');
+    imageUrl = uploaded.secure_url;
+    imagePublicId = uploaded.public_id;
   }
 
-  const blog = await Blog.create({
-    title,
-    content,
-    slug,
-    published,
-    image: uploadedImage
-      ? {
-          url: uploadedImage.secure_url,
-          publicId: uploadedImage.public_id,
-        }
-      : undefined,
-    createdBy,
+  const blog = await blogRepo.create({
+    title, content, slug, published: published ?? false,
+    imageUrl, imagePublicId, createdById: createdByUser.id,
   });
 
-  if (!blog) {
-    throw new AppError('Failed to create blog', 500);
-  }
-
-  const creator = await import('../../models/user.model.js').then((m) =>
-    m.User.findById(createdBy).lean()
-  );
-
-  await logActivity({
-    user: creator || { _id: createdBy, fullName: 'Admin', email: '' },
-    action: 'blog_created',
-    targetType: 'blog',
-    targetId: blog._id,
-    targetTitle: blog.title,
+  logActivity({
+    userId: createdByUser.id, userName: createdByUser.fullName, userEmail: createdByUser.email,
+    action: 'blog_created', targetType: 'blog', targetId: blog.id, targetTitle: blog.title,
   });
 
   return blog;
 };
 
-/* ===================== GET ALL BLOGS ===================== */
-export const getBlogsService = async ({ page = 1, limit = 10, search }) => {
-  const parsedPage = Math.max(Number(page) || 1, 1);
-  const parsedLimit = Math.max(Number(limit) || 10, 1);
-  const query = { published: true };
+export const getBlogsService = (params) => blogRepo.findAll({ ...params, publishedOnly: true });
 
-  // Text search
-  if (search) {
-    query.$text = { $search: search };
-  }
-
-  const skip = (parsedPage - 1) * parsedLimit;
-
-  const [blogs, total] = await Promise.all([
-    Blog.find(query).sort({ createdAt: -1 }).skip(skip).limit(parsedLimit),
-    Blog.countDocuments(query),
-  ]);
-
-  return {
-    total,
-    page: parsedPage,
-    limit: parsedLimit,
-    pages: Math.ceil(total / parsedLimit),
-    blogs,
-  };
-};
-
-/* ===================== GET ONE BLOG ===================== */
 export const getBlogByIdService = async (id) => {
-  const blog = await Blog.findById(id);
+  const blog = await blogRepo.findById(id);
   if (!blog) throw new AppError('Blog not found', 404);
   return blog;
 };
 
-/* ===================== UPDATE BLOG ===================== */
-export const updateBlogService = async (id, data) => {
-  const blog = await Blog.findById(id);
+export const updateBlogService = async (id, data, updatingUser) => {
+  const blog = await blogRepo.findById(id);
   if (!blog) throw new AppError('Blog not found', 404);
 
-  // Replace image if provided
+  const updateData = {};
+
   if (data.image) {
-    if (blog.image?.publicId) {
-      await deleteFromCloudinary(blog.image.publicId);
-    }
-
+    if (blog.imagePublicId) await deleteFromCloudinary(blog.imagePublicId).catch(() => {});
     const uploaded = await uploadsToCloudinary(data.image.buffer, 'blogs');
-
-    data.image = {
-      url: uploaded.secure_url,
-      publicId: uploaded.public_id,
-    };
+    updateData.imageUrl = uploaded.secure_url;
+    updateData.imagePublicId = uploaded.public_id;
   }
 
-  // Update only provided fields
-  Object.keys(data).forEach((key) => {
-    if (data[key] !== undefined) {
-      blog[key] = data[key];
-    }
+  for (const key of ['title', 'content', 'slug', 'published']) {
+    if (data[key] !== undefined) updateData[key] = data[key];
+  }
+
+  const updated = await blogRepo.update(id, updateData);
+
+  logActivity({
+    userId: updatingUser.id, userName: updatingUser.fullName, userEmail: updatingUser.email,
+    action: 'blog_updated', targetType: 'blog', targetId: id, targetTitle: updated?.title || blog.title,
   });
 
-  await blog.save();
-
-  const creator = await import('../../models/user.model.js').then((m) =>
-    m.User.findById(blog.createdBy).lean()
-  );
-
-  await logActivity({
-    user: creator || {
-      _id: blog.createdBy,
-      fullName: 'Admin',
-      email: '',
-    },
-    action: 'blog_updated',
-    targetType: 'blog',
-    targetId: blog._id,
-    targetTitle: blog.title,
-  });
-
-  return blog;
+  return updated || blog;
 };
 
-/* ===================== DELETE BLOG ===================== */
-export const deleteBlogService = async (id) => {
-  const blog = await Blog.findById(id);
+export const deleteBlogService = async (id, deletingUser) => {
+  const blog = await blogRepo.findById(id);
   if (!blog) throw new AppError('Blog not found', 404);
 
-  if (blog.image?.publicId) {
-    await deleteFromCloudinary(blog.image.publicId);
-  }
+  if (blog.imagePublicId) await deleteFromCloudinary(blog.imagePublicId).catch(() => {});
+  await blogRepo.delete(id);
 
-  const title = blog.title;
-
-  const creator = await import('../../models/user.model.js').then((m) =>
-    m.User.findById(blog.createdBy).lean()
-  );
-
-  await blog.deleteOne();
-
-  await logActivity({
-    user: creator || {
-      _id: blog.createdBy,
-      fullName: 'Admin',
-      email: '',
-    },
-    action: 'blog_deleted',
-    targetType: 'blog',
-    targetId: id,
-    targetTitle: title,
+  logActivity({
+    userId: deletingUser.id, userName: deletingUser.fullName, userEmail: deletingUser.email,
+    action: 'blog_deleted', targetType: 'blog', targetId: id, targetTitle: blog.title,
   });
 };

@@ -49,7 +49,7 @@ export const BlogsTab = () => {
   };
 
   const handleView = (blog) => {
-    window.open(`/blog/${blog._id}`, '_blank');
+    window.open(`/blog/${blog.id}`, '_blank');
   };
 
   const handleFormSuccess = () => {
@@ -136,7 +136,7 @@ export const BlogsTab = () => {
                   </tr>
                 ) : (
                   filteredBlogs.map((blog) => (
-                    <tr key={blog._id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <tr key={blog.id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="px-4 py-3.5">
                         <span className="font-medium text-gray-800">{blog.title}</span>
                       </td>

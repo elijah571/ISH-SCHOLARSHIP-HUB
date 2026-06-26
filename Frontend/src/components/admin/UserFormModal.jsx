@@ -71,7 +71,7 @@ const UserFormModal = ({ isOpen, onClose, onSuccess, user = null }) => {
       }
 
       if (isEditMode) {
-        await api.patch(`/api/admin/users/${user._id}`, payload);
+        await api.patch(`/api/admin/users/${user.id}`, payload);
       } else {
         await api.post('/api/admin/users', payload);
       }

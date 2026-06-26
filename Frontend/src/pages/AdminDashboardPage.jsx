@@ -215,7 +215,7 @@ const Dashboard = ({ stats, loading, setActiveTab }) => {
 
 
 const AdminDashboardPage = () => {
-  const [activeTab, setActiveTab] = useState('chat');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [stats, setStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(false);
   const { logout } = useAuth();

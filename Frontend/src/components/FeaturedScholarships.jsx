@@ -97,7 +97,7 @@ const FeaturedScholarships = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {scholarships.map((scholarship) => (
-              <Card key={scholarship._id} className="overflow-hidden">
+              <Card key={scholarship.id} className="overflow-hidden">
                 <Card.Image 
                   src={scholarship.image?.url || 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=400&q=80'} 
                   alt={scholarship.title}
@@ -138,7 +138,7 @@ const FeaturedScholarships = () => {
                     </div>
                   </div>
                   
-                  <Link to={`/scholarships/${scholarship._id}`}>
+                  <Link to={`/scholarships/${scholarship.id}`}>
                     <Button variant="outline" className="w-full">
                       Learn More
                     </Button>

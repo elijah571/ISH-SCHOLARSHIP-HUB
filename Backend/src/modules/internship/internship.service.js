@@ -1,150 +1,85 @@
-import { Internship } from '../../models/internship.model.js';
+import { internshipRepo } from './internship.repository.js';
 import { uploadsToCloudinary, deleteFromCloudinary } from '../../config/cloudinary.js';
 import { AppError } from '../../utils/AppError.js';
 import { logActivity } from '../admin/admin.service.js';
 
-export const createInternshipService = async (data) => {
-  let uploadedImage;
-
+export const createInternshipService = async (data, createdByUser) => {
+  let imageUrl, imagePublicId;
   if (data.image) {
-    uploadedImage = await uploadsToCloudinary(data.image.buffer, 'internships');
-  }
-
-  const internship = new Internship({
-    ...data,
-    image: uploadedImage
-      ? { url: uploadedImage.secure_url, publicId: uploadedImage.public_id }
-      : undefined,
-  });
-
-  await internship.save();
-
-  const creator = await import('../../models/user.model.js').then((m) =>
-    m.User.findById(data.createdBy).lean()
-  );
-  await logActivity({
-    user: creator || { _id: data.createdBy, fullName: 'Admin', email: '' },
-    action: 'internship_created',
-    targetType: 'internship',
-    targetId: internship._id,
-    targetTitle: internship.title,
-  });
-
-  return internship;
-};
-
-/* ===================== GET ALL (SEARCH + FILTER + PAGINATION) ===================== */
-export const getInternshipsService = async ({
-  page = 1,
-  limit = 10,
-  search,
-  country,
-  type,
-  deadline,
-  startDate,
-  endDate,
-}) => {
-  const query = {};
-
-  // 🔍 Text search
-  if (search) {
-    query.$text = { $search: search };
-  }
-
-  // 🎯 Filters
-  if (country) query.country = country;
-  if (type) query.type = type;
-  if (deadline) query.deadline = { $gte: new Date(deadline) };
-  if (startDate) query.startDate = startDate;
-  if (endDate) query.endDate = { $gte: new Date(endDate) };
-
-  const skip = (page - 1) * limit;
-
-  const [internships, total] = await Promise.all([
-    Internship.find(query).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
-    Internship.countDocuments(query),
-  ]);
-
-  return {
-    internships,
-    pagination: {
-      page: Number(page),
-      limit: Number(limit),
-      total,
-      totalPages: Math.ceil(total / limit),
-    },
-  };
-};
-
-/* ===================== GET ONE ===================== */
-export const getInternshipService = async (id) => {
-  const internship = await Internship.findById(id);
-  if (!internship) throw new AppError('Internship not found', 404);
-  return internship;
-};
-
-/* ===================== UPDATE ===================== */
-export const updateInternshipService = async (id, data) => {
-  const internship = await Internship.findById(id);
-  if (!internship) throw new AppError('Internship not found', 404);
-
-  // 🖼 Replace image if provided
-  if (data.image) {
-    if (internship.image?.publicId) {
-      await deleteFromCloudinary(internship.image.publicId);
-    }
-
     const uploaded = await uploadsToCloudinary(data.image.buffer, 'internships');
-
-    data.image = {
-      url: uploaded.secure_url,
-      publicId: uploaded.public_id,
-    };
+    imageUrl = uploaded.secure_url;
+    imagePublicId = uploaded.public_id;
   }
 
-  // 🔥 Only assign defined fields
-  for (const key of Object.keys(data)) {
-    if (data[key] !== undefined) {
-      internship[key] = data[key];
-    }
-  }
+  const internship = await internshipRepo.create({
+    title: data.title, institution: data.institution,
+    description: data.description, country: data.country,
+    deadline: data.deadline ? new Date(data.deadline) : null,
+    type: data.type, link: data.link,
+    startDate: data.startDate ? new Date(data.startDate) : null,
+    endDate: data.endDate ? new Date(data.endDate) : null,
+    imageUrl, imagePublicId,
+    createdById: createdByUser.id,
+  });
 
-  await internship.save();
-
-  const creator = await import('../../models/user.model.js').then((m) =>
-    m.User.findById(internship.createdBy).lean()
-  );
-  await logActivity({
-    user: creator || { _id: internship.createdBy, fullName: 'Admin', email: '' },
-    action: 'internship_updated',
-    targetType: 'internship',
-    targetId: internship._id,
-    targetTitle: internship.title,
+  logActivity({
+    userId: createdByUser.id, userName: createdByUser.fullName, userEmail: createdByUser.email,
+    action: 'internship_created', targetType: 'internship',
+    targetId: internship.id, targetTitle: internship.title,
   });
 
   return internship;
 };
 
-/* ===================== DELETE ===================== */
-export const deleteInternshipService = async (id) => {
-  const internship = await Internship.findById(id);
+export const getInternshipsService = (params) => internshipRepo.findAll(params);
+
+export const getInternshipService = async (id) => {
+  const internship = await internshipRepo.findById(id);
+  if (!internship) throw new AppError('Internship not found', 404);
+  return internship;
+};
+
+export const updateInternshipService = async (id, data, updatingUser) => {
+  const internship = await internshipRepo.findById(id);
   if (!internship) throw new AppError('Internship not found', 404);
 
-  if (internship.image?.publicId) {
-    await deleteFromCloudinary(internship.image.publicId);
+  const updateData = {};
+
+  if (data.image) {
+    if (internship.imagePublicId) await deleteFromCloudinary(internship.imagePublicId).catch(() => {});
+    const uploaded = await uploadsToCloudinary(data.image.buffer, 'internships');
+    updateData.imageUrl = uploaded.secure_url;
+    updateData.imagePublicId = uploaded.public_id;
   }
 
-  const title = internship.title;
-  const creator = await import('../../models/user.model.js').then((m) =>
-    m.User.findById(internship.createdBy).lean()
-  );
-  await internship.deleteOne();
+  for (const key of ['title', 'institution', 'description', 'country', 'type', 'link']) {
+    if (data[key] !== undefined) updateData[key] = data[key];
+  }
+  for (const key of ['deadline', 'startDate', 'endDate']) {
+    if (data[key] !== undefined) updateData[key] = data[key] ? new Date(data[key]) : null;
+  }
 
-  await logActivity({
-    user: creator || { _id: internship.createdBy, fullName: 'Admin', email: '' },
-    action: 'internship_deleted',
-    targetType: 'internship',
-    targetId: id,
-    targetTitle: title,
+  const updated = await internshipRepo.update(id, updateData);
+
+  logActivity({
+    userId: updatingUser.id, userName: updatingUser.fullName, userEmail: updatingUser.email,
+    action: 'internship_updated', targetType: 'internship',
+    targetId: id, targetTitle: updated?.title || internship.title,
+  });
+
+  return updated || internship;
+};
+
+export const deleteInternshipService = async (id, deletingUser) => {
+  const internship = await internshipRepo.findById(id);
+  if (!internship) throw new AppError('Internship not found', 404);
+
+  if (internship.imagePublicId) await deleteFromCloudinary(internship.imagePublicId).catch(() => {});
+  await internshipRepo.delete(id);
+
+  logActivity({
+    userId: deletingUser.id, userName: deletingUser.fullName, userEmail: deletingUser.email,
+    action: 'internship_deleted', targetType: 'internship',
+    targetId: id, targetTitle: internship.title,
   });
 };

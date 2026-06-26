@@ -1,39 +1,49 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { Suspense, lazy } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import HomePage from "./pages/HomePage";
-import ScholarshipListingPage from "./pages/ScholarshipListingPage";
-import ScholarshipDetailsPage from "./pages/ScholarshipDetailsPage";
-import InternshipListingPage from "./pages/InternshipListingPage";
-import InternshipDetailsPage from "./pages/InternshipDetailsPage";
-import CountryScholarshipsPage from "./pages/CountryScholarshipsPage";
-import RegisterPage from "./pages/RegisterPage";
-import LoginPage from "./pages/LoginPage";
-import VerifyEmailPage from "./pages/VerifyEmailPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-import DashboardPage from "./pages/DashboardPage";
-import AdminDashboardPage from "./pages/AdminDashboardPage";
-import BlogPage from "./pages/BlogPage";
-import BlogDetailsPage from "./pages/BlogDetailsPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import { ChatPage } from "./pages/ChatPage";
-import ApplyGuidePage from "./pages/ApplyGuidePage";
-import StudentResourcesPage from "./pages/StudentResourcesPage";
-import SuccessStoriesPage from "./pages/SuccessStoriesPage";
-import ResumeReviewPage from "./pages/ResumeReviewPage";
-import InterviewPrepPage from "./pages/InterviewPrepPage";
-import EssayEditingPage from "./pages/EssayEditingPage";
-import AdmissionConsultingPage from "./pages/AdmissionConsultingPage";
-import ContactPage from "./pages/ContactPage";
-import FAQPage from "./pages/FAQPage";
-import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
-import TermsOfServicePage from "./pages/TermsOfServicePage";
 import FloatingChatButton from "./components/FloatingChatButton";
+import Loader from "./components/Loader";
+
+const HomePage = lazy(() => import("./pages/HomePage"));
+const ScholarshipListingPage = lazy(() => import("./pages/ScholarshipListingPage"));
+const ScholarshipDetailsPage = lazy(() => import("./pages/ScholarshipDetailsPage"));
+const InternshipListingPage = lazy(() => import("./pages/InternshipListingPage"));
+const InternshipDetailsPage = lazy(() => import("./pages/InternshipDetailsPage"));
+const CountryScholarshipsPage = lazy(() => import("./pages/CountryScholarshipsPage"));
+const RegisterPage = lazy(() => import("./pages/RegisterPage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const VerifyEmailPage = lazy(() => import("./pages/VerifyEmailPage"));
+const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+const DashboardPage = lazy(() => import("./pages/DashboardPage"));
+const AdminDashboardPage = lazy(() => import("./pages/AdminDashboardPage"));
+const BlogPage = lazy(() => import("./pages/BlogPage"));
+const BlogDetailsPage = lazy(() => import("./pages/BlogDetailsPage"));
+const ChatPage = lazy(() => import("./pages/ChatPage").then((m) => ({ default: m.ChatPage })));
+const ApplyGuidePage = lazy(() => import("./pages/ApplyGuidePage"));
+const StudentResourcesPage = lazy(() => import("./pages/StudentResourcesPage"));
+const SuccessStoriesPage = lazy(() => import("./pages/SuccessStoriesPage"));
+const ResumeReviewPage = lazy(() => import("./pages/ResumeReviewPage"));
+const InterviewPrepPage = lazy(() => import("./pages/InterviewPrepPage"));
+const EssayEditingPage = lazy(() => import("./pages/EssayEditingPage"));
+const AdmissionConsultingPage = lazy(() => import("./pages/AdmissionConsultingPage"));
+const ContactPage = lazy(() => import("./pages/ContactPage"));
+const FAQPage = lazy(() => import("./pages/FAQPage"));
+const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
+const TermsOfServicePage = lazy(() => import("./pages/TermsOfServicePage"));
+
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <Loader size="lg" />
+  </div>
+);
 
 export default function App() {
   return (
     <>
+    <Suspense fallback={<PageLoader />}>
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/scholarships" element={<ScholarshipListingPage />} />
@@ -84,6 +94,7 @@ export default function App() {
       <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
       <Route path="/terms-of-service" element={<TermsOfServicePage />} />
     </Routes>
+    </Suspense>
     <ToastContainer
       position="top-right"
       autoClose={5000}

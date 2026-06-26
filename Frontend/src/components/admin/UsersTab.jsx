@@ -172,7 +172,7 @@ const UsersTab = () => {
                 ) : (
                   filteredUsers.map((user) => (
                     <TableRow 
-                      key={user._id} 
+                      key={user.id} 
                       data={user} 
                       columns={columns} 
                       onView={() => handleView(user)}
@@ -247,7 +247,7 @@ const UsersTab = () => {
         onSuccess={handleDeleteSuccess}
         item={selectedUser}
         itemType="user"
-        deleteEndpoint={`/api/admin/users/${selectedUser?._id}`}
+        deleteEndpoint={`/api/admin/users/${selectedUser?.id}`}
       />
     </div>
   );

@@ -181,7 +181,7 @@ export const InternshipsTab = () => {
                   </tr>
                 ) : (
                   filteredInternships.map((internship) => (
-                    <tr key={internship._id || internship.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <tr key={internship.id || internship.id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="px-4 py-3.5">
                         <span className="font-medium text-gray-800">{internship.title}</span>
                       </td>
@@ -281,7 +281,7 @@ export const InternshipsTab = () => {
         onSuccess={handleDeleteSuccess}
         item={selectedInternship}
         itemType="internship"
-        deleteEndpoint={`/api/internship/${selectedInternship?._id}`}
+        deleteEndpoint={`/api/internship/${selectedInternship?.id}`}
       />
     </div>
   );
